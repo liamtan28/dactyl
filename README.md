@@ -142,8 +142,8 @@ export {
 
 Currently, through `mod.ts`, you have access to:
 
-`Controller` - function decorator responsible for assigning controller metadata
-`DactylRouter` - router class able to register controllers, and convert them into routes for oak to interpret
-`HttpException` - throwable exception inside controller actions, `DactylRouter` will then handle said errors at top level and send the appropriate HTTP status code and message.
-`HttpStatus` - function decorator responsible for assigning default status codes for controller actions
-`Get, Post, Put, Patch, Delete` - currently supported function decorators responsible for defining routes on controller actions
+1. `Controller` - function decorator responsible for assigning controller metadata
+2. `DactylRouter` - router class able to register controllers, and convert them into routes for oak to interpret
+3. `HttpException` - throwable exception inside controller actions, `DactylRouter` will then handle said errors at top level and send the appropriate HTTP status code and message.
+4. `HttpStatus` - function decorator responsible for assigning default status codes for controller actions
+5. `Get, Post, Put, Patch, Delete` - currently supported function decorators responsible for defining routes on controller actions
