@@ -56,12 +56,12 @@ Controllers are declared with function decorators. This stores metadata that is 
 
 ```
 import {
-	Controller,
-	Get,
-	Post,
-	HttpStatus,
-	HttpException,
-	RouterContext,
+  Controller,
+  Get,
+  Post,
+  HttpStatus,
+  HttpException,
+  RouterContext,
 } from "./deps.ts";
 
 @Controller("/dinosaur")
