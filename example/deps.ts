@@ -5,7 +5,7 @@ export {
   Post,
   Put,
   Patch,
-  Params,
+  Param,
   Body,
   Query,
   Header,

@@ -10,6 +10,18 @@ export enum EHttpMethod {
   DELETE = "delete",
 }
 
+export enum EArgsType {
+  PARAM = "param",
+  BODY = "body",
+  QUERY = "query",
+  HEADER = "header",
+}
+export interface ControllerMetadata {
+  prefix: string | null;
+  routes: Map<string, RouteDefinition>;
+  defaultResponseCodes: Map<string, number>;
+  args: RouteArgument[];
+}
 export interface RouteDefinition {
   // Path to our route
   path: string;
@@ -18,21 +30,9 @@ export interface RouteDefinition {
   // Method name within our class responsible for this route
   methodName: string;
 }
-export enum EArgsType {
-  PARAMS = "params",
-  BODY = "body",
-  QUERY = "query",
-  HEADER = "header",
-}
-// Interface represents an @Param decorator
-// or an @Body decorator
-// that builds metadata on the parent
-// controller. This metadata is read
-// when routes are set on bootstrap
-// to route correct params to
-// controller actions
-export interface ActionArgsDefinition {
+export interface RouteArgument {
   type: EArgsType;
-  key: string;
   index: number;
+  key: string;
+  argFor: string;
 }

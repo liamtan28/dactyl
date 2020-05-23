@@ -1,28 +1,38 @@
-import { RouteDefinition, EHttpMethod } from "./model.ts";
+import { EHttpMethod, ControllerMetadata } from "./model.ts";
+import { getMeta, ensureController, setMeta } from "./metadata.ts";
 /**
  * Responsible for producing function decorators for all given HttpMethods.
  * Uses a curried function to return the function decorator.
  */
-const defineRouteDecorator = (requestMethod: EHttpMethod) => (
-  path: string
-): any => (target: any, propertyKey: string): void => {
-  // Define routes property on target constructor (the controller class) If it does not exist
-  // This will occur only if this is the first method being defined on the controller.
-  if (!Reflect.has(target.constructor, "routes")) {
-    Reflect.defineProperty(target.constructor, "routes", { value: [] });
-  }
+const defineRouteDecorator = (requestMethod: EHttpMethod) =>
+  (
+    path: string,
+  ): any =>
+    (target: any, propertyKey: string): void => {
+      // You can't ensure order of function decorators,
+      // so ensure constructor has boilerplate metadata
+      // before execution.
+      ensureController(target.constructor);
+      // Create a clone of the currently stored routes on the controller class, and push the new
+      // value into it.
+      const meta: ControllerMetadata = getMeta(
+        target.constructor,
+        "controllerMetadata",
+      );
 
-  // Create a clone of the currently stored routes on the controller class, and push the new
-  // value into it.
-  const routes = Reflect.get(target.constructor, "routes") as RouteDefinition[];
-  routes.push({
-    requestMethod,
-    path,
-    methodName: propertyKey,
-  });
-  // Re-define the routes attribute on the controller class, now including the new route
-  Reflect.defineProperty(target.constructor, "routes", { value: routes });
-};
+      meta.routes.set(propertyKey, {
+        requestMethod,
+        path,
+        methodName: propertyKey,
+      });
+
+      // Re-define the routes attribute on the controller class, now including the new route
+      setMeta(
+        target.constructor,
+        "controllerMetadata",
+        meta,
+      );
+    };
 // Define a decorator and export it for each of the supported HttpMethods
 export const Get = defineRouteDecorator(EHttpMethod.GET);
 export const Put = defineRouteDecorator(EHttpMethod.PUT);

@@ -6,3 +6,4 @@
 4. Tests bruh. This shit is so easy to unit
    test
 5. Error handling
+6. Search for TODO in whole project and fix all.
