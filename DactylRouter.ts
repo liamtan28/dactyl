@@ -45,6 +45,11 @@ export class DactylRouter {
       controller,
       "body",
     );
+    // Query for each controller action
+    const queryDefinitions: Map<string, ActionArgsDefinition[]> = Reflect.get(
+      controller,
+      "query",
+    );
     // Default status codes
     const statusCodes: Map<string, number> = Reflect.get(
       controller,
@@ -90,18 +95,28 @@ export class DactylRouter {
             const actionBody: ActionArgsDefinition[] = bodyDefinitions.get(
               route.methodName,
             ) || [];
+            const actionQuery: ActionArgsDefinition[] = queryDefinitions.get(
+              route.methodName,
+            ) || [];
             // merge all body and params together
             const args: ActionArgsDefinition[] = [
               ...actionParams,
               ...actionBody,
+              ...actionQuery,
             ];
 
             // Sort params by index to ensure order
             args.sort((a: ActionArgsDefinition, b: ActionArgsDefinition) =>
               a.index - b.index
             );
+            const url: URL = context.request.url;
             // Retreive actual params from route
             const paramsFromContext: any = context.params;
+            const headersFromContext: Headers = context.request.headers;
+            const queryFromContext: any = {};
+            for (const [key, value] of url.searchParams.entries()) {
+              queryFromContext[key] = value;
+            }
             // TODO probably should use context.request.hasBody()
             // and some fancy logic to not call async action if
             // not needed
@@ -117,6 +132,8 @@ export class DactylRouter {
                   return paramsFromContext[arg.key];
                 case EArgsType.BODY:
                   return bodyFromContext.value[arg.key];
+                case EArgsType.QUERY:
+                  return queryFromContext[arg.key];
                 default:
                   // TODO probably bad way here, but should
                   // get 500 if weird argsdefinition

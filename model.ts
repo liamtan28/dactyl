@@ -21,6 +21,7 @@ export interface RouteDefinition {
 export enum EArgsType {
   PARAMS = "params",
   BODY = "body",
+  QUERY = "query",
 }
 // Interface represents an @Param decorator
 // or an @Body decorator

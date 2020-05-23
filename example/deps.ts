@@ -7,6 +7,7 @@ export {
   Patch,
   Params,
   Body,
+  Query,
   HttpStatus,
   HttpException,
   DactylRouter,

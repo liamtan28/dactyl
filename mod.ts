@@ -6,3 +6,4 @@ export { HttpStatus } from "./HttpStatus.ts";
 export { HttpException } from "./HttpException.ts";
 export { Params } from "./Params.ts";
 export { Body } from "./Body.ts";
+export { Query } from "./Query.ts";
