@@ -4,6 +4,7 @@ export {
   Get,
   Post,
   Patch,
+  Params,
   HttpStatus,
   HttpException,
   DactylRouter,
