@@ -45,6 +45,16 @@ export class DactylRouter {
       controller,
       "body",
     );
+    // Query for each controller action
+    const queryDefinitions: Map<string, ActionArgsDefinition[]> = Reflect.get(
+      controller,
+      "query",
+    );
+    // Header for each controller action
+    const headerDefinitions: Map<string, ActionArgsDefinition[]> = Reflect.get(
+      controller,
+      "header",
+    );
     // Default status codes
     const statusCodes: Map<string, number> = Reflect.get(
       controller,
@@ -83,6 +93,35 @@ export class DactylRouter {
           // with an uncaught rejection will also be
           // appropriately caught here.
           try {
+            // TODO build metadata more efficiently here.
+            /*
+              const controllerMetadata: IControllerMetadata = Reflect.get(
+                controller,
+                "controllerMetadata"
+              );
+              // Shape:
+              {
+                prefix: 'dinosaur',
+                actions: {
+                  getDinosaurById: {
+                    params: [{
+                      index: 0,
+                      key: 'id',
+                    }],
+                    body: [{
+                      index: 1,
+                      key: 'name'
+                    }],
+                    headers: [],
+                    query: []
+                  }
+                }
+              }
+              // How to update: (hide this in metadata.ts util)
+              function createControllerMetadata(controller, prefix);
+              function updateControllerMetadata(controller, actionName, paramType, index, value);
+
+            */
             // Retreive this controller actions specific param definitions
             const actionParams: ActionArgsDefinition[] = paramDefinitions.get(
               route.methodName,
@@ -90,18 +129,36 @@ export class DactylRouter {
             const actionBody: ActionArgsDefinition[] = bodyDefinitions.get(
               route.methodName,
             ) || [];
+            const actionQuery: ActionArgsDefinition[] = queryDefinitions.get(
+              route.methodName,
+            ) || [];
+            const actionHeaders: ActionArgsDefinition[] = headerDefinitions.get(
+              route.methodName,
+            ) || [];
             // merge all body and params together
             const args: ActionArgsDefinition[] = [
               ...actionParams,
               ...actionBody,
+              ...actionQuery,
+              ...actionHeaders,
             ];
 
             // Sort params by index to ensure order
             args.sort((a: ActionArgsDefinition, b: ActionArgsDefinition) =>
               a.index - b.index
             );
+            const url: URL = context.request.url;
+            const headersRaw: Headers = context.request.headers;
             // Retreive actual params from route
             const paramsFromContext: any = context.params;
+            const headersFromContext: any = {};
+            for (const [key, value] of headersRaw.entries()) {
+              headersFromContext[key] = value;
+            }
+            const queryFromContext: any = {};
+            for (const [key, value] of url.searchParams.entries()) {
+              queryFromContext[key] = value;
+            }
             // TODO probably should use context.request.hasBody()
             // and some fancy logic to not call async action if
             // not needed
@@ -117,6 +174,10 @@ export class DactylRouter {
                   return paramsFromContext[arg.key];
                 case EArgsType.BODY:
                   return bodyFromContext.value[arg.key];
+                case EArgsType.QUERY:
+                  return queryFromContext[arg.key];
+                case EArgsType.HEADER:
+                  return headersFromContext[arg.key];
                 default:
                   // TODO probably bad way here, but should
                   // get 500 if weird argsdefinition

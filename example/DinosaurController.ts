@@ -5,22 +5,39 @@ import {
   Put,
   Params,
   Body,
+  Query,
+  Header,
   HttpStatus,
   HttpException,
 } from "./deps.ts";
+
 @Controller("/dinosaur")
 class DinosaurController {
   @Get("/")
   @HttpStatus(200)
-  getDinosaurs() {
+  getDinosaurs(@Query('orderBy') orderBy: any, @Query('sort') sort: any) {
+
+    const dinosaurs: any[] = [
+      { name: 'Tyrannosaurus Rex', period: 'Maastrichtian'},
+      { name: 'Velociraptor', period: 'Cretaceous' },
+      { name: 'Diplodocus', period: 'Oxfordian' }
+    ];
+
+    if(orderBy) {
+      dinosaurs.sort((a: any, b: any) => a[orderBy] < b[orderBy] ? -1 : 1);
+      if (sort === 'desc') dinosaurs.reverse();
+    }
+
     return {
       message: "Action returning all dinosaurs! Defaults to 200 status!",
+      data: dinosaurs,
     };
   }
   @Get("/:id")
-  getDinosaurById(@Params('id') id: any) {
+  getDinosaurById(@Params('id') id: any, @Header('content-type') contentType: any) {
     return {
       message: `Action returning one dinosaur with id ${id}`,
+      ContentType: contentType,
     };
   }
   @Post("/")

@@ -5,3 +5,4 @@
 3. set metadata property keys to be constant
 4. Tests bruh. This shit is so easy to unit
    test
+5. Error handling
