@@ -14,7 +14,7 @@ import {
 @Controller("/dinosaur")
 class DinosaurController {
   @Get("/")
-  @HttpStatus(410)
+  @HttpStatus(200)
   getDinosaurs(@Query('orderBy') orderBy: any, @Query('sort') sort: any) {
 
     const dinosaurs: any[] = [
