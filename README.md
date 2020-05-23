@@ -66,30 +66,21 @@ import {
 
 @Controller("/dinosaur")
 class DinosaurController  {
-
   @Get("/")
   @HttpStatus(200)
-  getDinosaurs()  {
-    return  {
+  getDinosaurs() {
+    return {
       message: "Action returning all dinosaurs! Defaults to 200 status!",
     };
   }
-
   @Get("/:id")
-  getDinosaurById(context: RouterContext)  {
+  getDinosaurById(@Params('id') id: any) {
     return {
-      message: `Action returning one dinosaur with id ${context.params.id}`,
+      message: `Action returning one dinosaur with id ${id}`,
     };
   }
-
   @Post("/")
-  async createDinosaur(context:  RouterContext)  {
-    // Access to Deno request object directly!
-    if (!context.request.hasBody) {
-      throw new HttpException("Bad Request", 400);
-    }
-    const result: any = await context.request.body();
-    const { name } = result.value;
+  async createDinosaur(@Body('name') name: any) {
     if (!name) {
       throw new HttpException("name is a required field", 400);
     }
@@ -97,8 +88,14 @@ class DinosaurController  {
       message: `Created dinosaur with name ${name}`,
     };
   }
+  @Put("/:id")
+  async updateDinosaur(@Params('id') id: any, @Body('name') name: any) {
+    return {
+      message: `Updated name of dinosaur with id ${id} to ${name}`,
+    };
+  }
 }
-export  default DinosaurController;
+export default DinosaurController;
 ```
 
 `index.ts`
@@ -147,3 +144,5 @@ Currently, through `mod.ts`, you have access to:
 3. `HttpException` - throwable exception inside controller actions, `DactylRouter` will then handle said errors at top level and send the appropriate HTTP status code and message.
 4. `HttpStatus` - function decorator responsible for assigning default status codes for controller actions
 5. `Get, Post, Put, Patch, Delete` - currently supported function decorators responsible for defining routes on controller actions
+6. `Params` - maps `context.params` onto argument in controller action
+7. `Body` - maps `context.request` async body onto argument in controller action
