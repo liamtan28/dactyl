@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Params,
   HttpStatus,
   HttpException,
   RouterContext,
@@ -17,9 +18,9 @@ class DinosaurController {
     };
   }
   @Get("/:id")
-  getDinosaurById(context: RouterContext) {
+  getDinosaurById(@Params('id') id: any) {
     return {
-      message: `Action returning one dinosaur with id ${context.params.id}`,
+      message: `Action returning one dinosaur with id ${id} and name ${name}`,
     };
   }
   @Post("/")

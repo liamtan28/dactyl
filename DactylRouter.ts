@@ -1,5 +1,5 @@
 import { Router as OakRouter } from "./deps.ts";
-import { RouteDefinition, EHttpMethod } from "./model.ts";
+import { RouteDefinition, EHttpMethod, ParamsDefinition } from "./model.ts";
 import { HttpException } from "./HttpException.ts";
 
 /**
@@ -30,6 +30,10 @@ export class DactylRouter {
     // controller metadata from the controller, as
     // well as the status code map
     const prefix: string = Reflect.get(controller, "prefix");
+    const paramDefinitions: Map<string, ParamsDefinition[]> = Reflect.get(
+      controller,
+      "params",
+    );
     const statusCodes: Map<string, number> = Reflect.get(
       controller,
       "response_status_codes",
@@ -66,27 +70,36 @@ export class DactylRouter {
           // returns a promise, meaning that any promise
           // with an uncaught rejection will also be
           // appropriately caught here.
-          let req = context.request;
-          let res = context.response;
           try {
-            // Provide the specified method with both the Request and
-            // Response express objects so that it may access any
-            // info required. This library simply provides a
-            // declarative way to construct routes and
-            // controllers and thus does not interfere
-            // with the Request and Response express
-            // objects.
-            const response: any = await instance[route.methodName](context);
+            // Retreive this controller actions specific param definitions
+            const actionParams: ParamsDefinition[] = paramDefinitions.get(
+              route.methodName,
+            ) || [];
+            // Sort params by index to ensure order
+            actionParams.sort((a, b) => a.index - b.index);
+            // Retreive actual params from route
+            const paramsFromContext: any = context.params;
+            // Map ParamDefinitions onto the actual params
+            // from route
+            const params: any[] = actionParams.map((
+              param: ParamsDefinition,
+            ): any => paramsFromContext[param.key]);
+
+            // execute controller action here. Assume async. If not,
+            // controller action will just be wrapped in Promise
+            const response = await instance[route.methodName](...params);
+
             // In the example that the controller method returned no data, but
             // the response object was accessed directly and thus has finished
             // replying to the client, return early as no more has to be done.
-            if (!response && res.body) return;
+            // TODO cehck if this works the same in deno
+            if (!response && context.response.body) return;
             // If the response is empty, but there has been no response sent,
             // instead call the sendNoData method and reply with a 204
             // No Content. Warn the developer in dev mode as this was
             // likely a mistake.
-            else if (!response && !res.body) {
-              return this.sendNoData(route, controller, res);
+            else if (!response && !context.response.body) {
+              return this.sendNoData(route, controller, context.response);
             }
             // Generate the statusCode to reply with. If the method name
             // has a status code specified by the HttpStatus function
@@ -100,8 +113,8 @@ export class DactylRouter {
             // If we have reached the end of the control statement, the response
             // is ready to be sent. Specify the status code and respond to the
             // client with the response from the controller method.
-            res.body = response;
-            res.status = statusCode;
+            context.response.body = response;
+            context.response.status = statusCode;
           } catch (error) {
             // If the error thrown was an HttpException from the
             // library provided, then appropriately throw that
@@ -113,11 +126,11 @@ export class DactylRouter {
                 error: string;
                 status: number;
               } = error.getError();
-              res.status = response.status;
-              res.body = response;
+              context.response.status = response.status;
+              context.response.body = response;
             } else {
               console.error(error);
-              this.handleUnknownException(route, controller, res);
+              this.handleUnknownException(route, controller, context.response);
             }
           }
         },
