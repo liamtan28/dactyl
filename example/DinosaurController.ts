@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Put,
-  Params,
+  Param,
   Body,
   Query,
   Header,
@@ -14,7 +14,7 @@ import {
 @Controller("/dinosaur")
 class DinosaurController {
   @Get("/")
-  @HttpStatus(200)
+  @HttpStatus(410)
   getDinosaurs(@Query('orderBy') orderBy: any, @Query('sort') sort: any) {
 
     const dinosaurs: any[] = [
@@ -34,7 +34,7 @@ class DinosaurController {
     };
   }
   @Get("/:id")
-  getDinosaurById(@Params('id') id: any, @Header('content-type') contentType: any) {
+  getDinosaurById(@Param('id') id: any, @Header('content-type') contentType: any) {
     return {
       message: `Action returning one dinosaur with id ${id}`,
       ContentType: contentType,
@@ -50,7 +50,7 @@ class DinosaurController {
     };
   }
   @Put("/:id")
-  async updateDinosaur(@Params('id') id: any, @Body('name') name: any) {
+  async updateDinosaur(@Param('id') id: any, @Body('name') name: any) {
     return {
       message: `Updated name of dinosaur with id ${id} to ${name}`,
     };

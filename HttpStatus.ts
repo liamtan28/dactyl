@@ -1,18 +1,17 @@
-export const HttpStatus = (code: number): any => (
-  target: any,
-  propertyKey: string
-): void => {
-  if (!Reflect.has(target.constructor, "response_status_codes")) {
-    Reflect.defineProperty(target.constructor, "response_status_codes", {
-      value: new Map<string, number>(),
-    });
-  }
-  const statusCodes: Map<string, number> = Reflect.get(
-    target.constructor,
-    "response_status_codes"
-  );
-  statusCodes.set(propertyKey, code);
-  Reflect.defineProperty(target.constructor, "response_status_codes", {
-    value: statusCodes,
-  });
-};
+import { ensureController, getMeta, setMeta } from "./metadata.ts";
+import { ControllerMetadata } from "./model.ts";
+
+export const HttpStatus = (code: number): any =>
+  (
+    target: any,
+    propertyKey: string,
+  ): void => {
+    ensureController(target.constructor);
+
+    const meta: ControllerMetadata = getMeta(
+      target.constructor,
+      "controllerMetadata",
+    );
+    meta.defaultResponseCodes.set(propertyKey, code);
+    setMeta(target.constructor, "controllerMetadata", meta);
+  };

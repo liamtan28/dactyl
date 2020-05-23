@@ -89,7 +89,7 @@ class DinosaurController  {
     };
   }
   @Put("/:id")
-  async updateDinosaur(@Params('id') id: any, @Body('name') name: any) {
+  async updateDinosaur(@Param('id') id: any, @Body('name') name: any) {
     return {
       message: `Updated name of dinosaur with id ${id} to ${name}`,
     };
@@ -144,7 +144,7 @@ Currently, through `mod.ts`, you have access to:
 3. `HttpException` - throwable exception inside controller actions, `DactylRouter` will then handle said errors at top level and send the appropriate HTTP status code and message.
 4. `HttpStatus` - function decorator responsible for assigning default status codes for controller actions
 5. `Get, Post, Put, Patch, Delete` - currently supported function decorators responsible for defining routes on controller actions
-6. `Params` - maps `context.params` onto argument in controller action
+6. `Param` - maps `context.params` onto argument in controller action
 7. `Body` - maps `context.request` async body onto argument in controller action
 8. `Query` - maps `context.url.searchParams` onto argument in controller action
 9. `Header` - maps `context.headers` onto argument in controller action

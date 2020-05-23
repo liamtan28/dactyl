@@ -2,8 +2,9 @@ import { Router as OakRouter } from "./deps.ts";
 import {
   RouteDefinition,
   EHttpMethod,
-  ActionArgsDefinition,
   EArgsType,
+  ControllerMetadata,
+  RouteArgument,
 } from "./model.ts";
 import { HttpException } from "./HttpException.ts";
 
@@ -33,57 +34,37 @@ export class DactylRouter {
 
     // Retreive all controller metadata for request routing
 
-    // Controller prefix
-    const prefix: string = Reflect.get(controller, "prefix");
-    // Params for each controller action
-    const paramDefinitions: Map<string, ActionArgsDefinition[]> = Reflect.get(
+    const meta: ControllerMetadata = Reflect.get(
       controller,
-      "params",
+      "controllerMetadata",
     );
-    // Body for each controller action
-    const bodyDefinitions: Map<string, ActionArgsDefinition[]> = Reflect.get(
-      controller,
-      "body",
-    );
-    // Query for each controller action
-    const queryDefinitions: Map<string, ActionArgsDefinition[]> = Reflect.get(
-      controller,
-      "query",
-    );
-    // Header for each controller action
-    const headerDefinitions: Map<string, ActionArgsDefinition[]> = Reflect.get(
-      controller,
-      "header",
-    );
-    // Default status codes
-    const statusCodes: Map<string, number> = Reflect.get(
-      controller,
-      "response_status_codes",
-    );
-
-    const routes: Array<RouteDefinition> = Reflect.get(controller, "routes");
+    // TODO ensure sound routing structure here before proceeding
     console.info(
-      `  ${prefix}`,
+      `  ${meta.prefix}`,
     );
     // For each provided route, a handler must be defined on the express router
     // according to the specified behaviour in the metadata of the controller.
     // We can expect this route metadata to be supplied in the form of a
     // RouteDefinition interface
-    routes.forEach((route: RouteDefinition): void => {
+    meta.routes.forEach((route: RouteDefinition): void => {
       console.info(
         `     [${route.requestMethod.toUpperCase()}] ${route.path}`,
       );
       // the whole path for this route, according to the prefix defined on
       // the Controller class decorator, and the path specified by the
       // method decorator
-      const path: string = prefix + route.path;
+      const path: string = meta.prefix + route.path;
+      // Filter out args for this specific controller action
+      const args: RouteArgument[] = meta.args.filter((arg: RouteArgument) =>
+        arg.argFor === route.methodName
+      );
       // given an example GET Request on the path api/user, this
       // statement will evaluate as:
       // this.router.get('api/user', (req, res) => /* handler */);
-
       this.router[route.requestMethod](
         path,
         async (context: any): Promise<void> => {
+          // TODO Get this to use Deno top level async instead
           // A top level try/catch control statement is defined so that
           // any exceptions raised explicitly (HttpException), or any
           // unknown exception can be handled safely. The top level
@@ -93,84 +74,37 @@ export class DactylRouter {
           // with an uncaught rejection will also be
           // appropriately caught here.
           try {
-            // TODO build metadata more efficiently here.
-            /*
-              const controllerMetadata: IControllerMetadata = Reflect.get(
-                controller,
-                "controllerMetadata"
-              );
-              // Shape:
-              {
-                prefix: 'dinosaur',
-                actions: {
-                  getDinosaurById: {
-                    params: [{
-                      index: 0,
-                      key: 'id',
-                    }],
-                    body: [{
-                      index: 1,
-                      key: 'name'
-                    }],
-                    headers: [],
-                    query: []
-                  }
-                }
-              }
-              // How to update: (hide this in metadata.ts util)
-              function createControllerMetadata(controller, prefix);
-              function updateControllerMetadata(controller, actionName, paramType, index, value);
-
-            */
-            // Retreive this controller actions specific param definitions
-            const actionParams: ActionArgsDefinition[] = paramDefinitions.get(
-              route.methodName,
-            ) || [];
-            const actionBody: ActionArgsDefinition[] = bodyDefinitions.get(
-              route.methodName,
-            ) || [];
-            const actionQuery: ActionArgsDefinition[] = queryDefinitions.get(
-              route.methodName,
-            ) || [];
-            const actionHeaders: ActionArgsDefinition[] = headerDefinitions.get(
-              route.methodName,
-            ) || [];
-            // merge all body and params together
-            const args: ActionArgsDefinition[] = [
-              ...actionParams,
-              ...actionBody,
-              ...actionQuery,
-              ...actionHeaders,
-            ];
-
             // Sort params by index to ensure order
-            args.sort((a: ActionArgsDefinition, b: ActionArgsDefinition) =>
+            args.sort((a: RouteArgument, b: RouteArgument) =>
               a.index - b.index
             );
+
             const url: URL = context.request.url;
             const headersRaw: Headers = context.request.headers;
-            // Retreive actual params from route
             const paramsFromContext: any = context.params;
+
             const headersFromContext: any = {};
             for (const [key, value] of headersRaw.entries()) {
               headersFromContext[key] = value;
             }
+
             const queryFromContext: any = {};
             for (const [key, value] of url.searchParams.entries()) {
               queryFromContext[key] = value;
             }
+
             // TODO probably should use context.request.hasBody()
             // and some fancy logic to not call async action if
             // not needed
             const bodyFromContext: any = await context.request.body();
             // Map ParamDefinitions onto the actual params
             // from route
+
             const params: any[] = args.map((
-              arg: ActionArgsDefinition,
+              arg: RouteArgument,
             ): any => {
-              //paramsFromContext[param.key]
               switch (arg.type) {
-                case EArgsType.PARAMS:
+                case EArgsType.PARAM:
                   return paramsFromContext[arg.key];
                 case EArgsType.BODY:
                   return bodyFromContext.value[arg.key];
@@ -205,9 +139,8 @@ export class DactylRouter {
             // decorator, use that one. If none was specified, and
             // a default must be used, use 201 for POST requests,
             // and 200 for all others.
-            const statusCode: number = (statusCodes
-              ? statusCodes.get(route.methodName)
-              : null) ||
+            const statusCode: number =
+              meta.defaultResponseCodes.get(route.methodName) ||
               (route.requestMethod == EHttpMethod.POST ? 201 : 200);
             // If we have reached the end of the control statement, the response
             // is ready to be sent. Specify the status code and respond to the
