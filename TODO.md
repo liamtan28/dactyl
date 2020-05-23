@@ -2,4 +2,6 @@
    reflect API get set commands etc. Should deal
    with target not having key existing first
 2. Clean up all comments and DactylRouter.
-3. sewt metadata property keys to be constant
+3. set metadata property keys to be constant
+4. Tests bruh. This shit is so easy to unit
+   test

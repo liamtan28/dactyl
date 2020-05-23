@@ -1,5 +1,10 @@
 import { Router as OakRouter } from "./deps.ts";
-import { RouteDefinition, EHttpMethod, ParamsDefinition } from "./model.ts";
+import {
+  RouteDefinition,
+  EHttpMethod,
+  ActionArgsDefinition,
+  EArgsType,
+} from "./model.ts";
 import { HttpException } from "./HttpException.ts";
 
 /**
@@ -26,14 +31,21 @@ export class DactylRouter {
     // argument.
     const instance: any = new controller();
 
-    // Extract the prefix and routes defined in the
-    // controller metadata from the controller, as
-    // well as the status code map
+    // Retreive all controller metadata for request routing
+
+    // Controller prefix
     const prefix: string = Reflect.get(controller, "prefix");
-    const paramDefinitions: Map<string, ParamsDefinition[]> = Reflect.get(
+    // Params for each controller action
+    const paramDefinitions: Map<string, ActionArgsDefinition[]> = Reflect.get(
       controller,
       "params",
     );
+    // Body for each controller action
+    const bodyDefinitions: Map<string, ActionArgsDefinition[]> = Reflect.get(
+      controller,
+      "body",
+    );
+    // Default status codes
     const statusCodes: Map<string, number> = Reflect.get(
       controller,
       "response_status_codes",
@@ -72,19 +84,45 @@ export class DactylRouter {
           // appropriately caught here.
           try {
             // Retreive this controller actions specific param definitions
-            const actionParams: ParamsDefinition[] = paramDefinitions.get(
+            const actionParams: ActionArgsDefinition[] = paramDefinitions.get(
               route.methodName,
             ) || [];
+            const actionBody: ActionArgsDefinition[] = bodyDefinitions.get(
+              route.methodName,
+            ) || [];
+            // merge all body and params together
+            const args: ActionArgsDefinition[] = [
+              ...actionParams,
+              ...actionBody,
+            ];
+
             // Sort params by index to ensure order
-            actionParams.sort((a, b) => a.index - b.index);
+            args.sort((a: ActionArgsDefinition, b: ActionArgsDefinition) =>
+              a.index - b.index
+            );
             // Retreive actual params from route
             const paramsFromContext: any = context.params;
+            // TODO probably should use context.request.hasBody()
+            // and some fancy logic to not call async action if
+            // not needed
+            const bodyFromContext: any = await context.request.body();
             // Map ParamDefinitions onto the actual params
             // from route
-            const params: any[] = actionParams.map((
-              param: ParamsDefinition,
-            ): any => paramsFromContext[param.key]);
-
+            const params: any[] = args.map((
+              arg: ActionArgsDefinition,
+            ): any => {
+              //paramsFromContext[param.key]
+              switch (arg.type) {
+                case EArgsType.PARAMS:
+                  return paramsFromContext[arg.key];
+                case EArgsType.BODY:
+                  return bodyFromContext.value[arg.key];
+                default:
+                  // TODO probably bad way here, but should
+                  // get 500 if weird argsdefinition
+                  throw null;
+              }
+            });
             // execute controller action here. Assume async. If not,
             // controller action will just be wrapped in Promise
             const response = await instance[route.methodName](...params);

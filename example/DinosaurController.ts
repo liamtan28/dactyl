@@ -2,12 +2,12 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Params,
+  Body,
   HttpStatus,
   HttpException,
-  RouterContext,
 } from "./deps.ts";
-
 @Controller("/dinosaur")
 class DinosaurController {
   @Get("/")
@@ -20,23 +20,22 @@ class DinosaurController {
   @Get("/:id")
   getDinosaurById(@Params('id') id: any) {
     return {
-      message: `Action returning one dinosaur with id ${id} and name ${name}`,
+      message: `Action returning one dinosaur with id ${id}`,
     };
   }
   @Post("/")
-  async createDinosaur(context: RouterContext) {
-    // Access to Deno request object directly!
-    if (!context.request.hasBody) {
-      throw new HttpException("Bad Request", 400);
-    }
-    const result: any = await context.request.body();
-    const { name } = result.value;
-
+  async createDinosaur(@Body('name') name: any) {
     if (!name) {
       throw new HttpException("name is a required field", 400);
     }
     return {
       message: `Created dinosaur with name ${name}`,
+    };
+  }
+  @Put("/:id")
+  async updateDinosaur(@Params('id') id: any, @Body('name') name: any) {
+    return {
+      message: `Updated name of dinosaur with id ${id} to ${name}`,
     };
   }
 }

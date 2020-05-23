@@ -18,13 +18,19 @@ export interface RouteDefinition {
   // Method name within our class responsible for this route
   methodName: string;
 }
+export enum EArgsType {
+  PARAMS = "params",
+  BODY = "body",
+}
 // Interface represents an @Param decorator
+// or an @Body decorator
 // that builds metadata on the parent
 // controller. This metadata is read
 // when routes are set on bootstrap
 // to route correct params to
 // controller actions
-export interface ParamsDefinition {
+export interface ActionArgsDefinition {
+  type: EArgsType;
   key: string;
   index: number;
 }
