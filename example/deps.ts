@@ -8,6 +8,7 @@ export {
   Params,
   Body,
   Query,
+  Header,
   HttpStatus,
   HttpException,
   DactylRouter,

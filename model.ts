@@ -22,6 +22,7 @@ export enum EArgsType {
   PARAMS = "params",
   BODY = "body",
   QUERY = "query",
+  HEADER = "header",
 }
 // Interface represents an @Param decorator
 // or an @Body decorator

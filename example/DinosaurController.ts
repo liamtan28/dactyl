@@ -6,6 +6,7 @@ import {
   Params,
   Body,
   Query,
+  Header,
   HttpStatus,
   HttpException,
 } from "./deps.ts";
@@ -21,7 +22,7 @@ class DinosaurController {
       { name: 'Velociraptor', period: 'Cretaceous' },
       { name: 'Diplodocus', period: 'Oxfordian' }
     ];
-    
+
     if(orderBy) {
       dinosaurs.sort((a: any, b: any) => a[orderBy] < b[orderBy] ? -1 : 1);
       if (sort === 'desc') dinosaurs.reverse();
@@ -33,9 +34,10 @@ class DinosaurController {
     };
   }
   @Get("/:id")
-  getDinosaurById(@Params('id') id: any) {
+  getDinosaurById(@Params('id') id: any, @Header('content-type') contentType: any) {
     return {
       message: `Action returning one dinosaur with id ${id}`,
+      ContentType: contentType,
     };
   }
   @Post("/")
