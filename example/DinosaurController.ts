@@ -25,13 +25,6 @@ class DinosaurController {
   }
   @Post("/")
   async createDinosaur(@Body('name') name: any) {
-    // Access to Deno request object directly!
-    /*if (!context.request.hasBody) {
-      throw new HttpException("Bad Request", 400);
-    }
-    const result: any = await context.request.body();
-    const { name } = result.value;
-    */
     if (!name) {
       throw new HttpException("name is a required field", 400);
     }
