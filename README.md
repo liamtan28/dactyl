@@ -146,3 +146,5 @@ Currently, through `mod.ts`, you have access to:
 5. `Get, Post, Put, Patch, Delete` - currently supported function decorators responsible for defining routes on controller actions
 6. `Params` - maps `context.params` onto argument in controller action
 7. `Body` - maps `context.request` async body onto argument in controller action
+8. `Query` - maps `context.url.searchParams` onto argument in controller action
+9. `Header` - maps `context.headers` onto argument in controller action
