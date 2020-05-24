@@ -1,4 +1,5 @@
-// This in the example will come from my deno.land module, not locally
+// For your own project, deps.ts should re-export
+// these deps from https://deno.land/x/dactyl/mod.ts
 export {
   Controller,
   Get,
@@ -17,6 +18,7 @@ export {
   HttpException,
   Application,
 } from "../mod.ts";
+
 // Import this dependency if you wish to typecheck the result
 // of @Context(), @Request, or @Response
 export {
