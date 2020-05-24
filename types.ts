@@ -5,7 +5,12 @@ export enum HttpMethod {
   PATCH = "patch",
   DELETE = "delete",
 }
-
+/**
+ * All parameter decorator types. When a route argument is declared
+ * using a parameter decorator, the correct `ArgsType` is assigned
+ * so that at runtime `Router` can determine where to retreive the
+ * data from
+ */
 export enum ArgsType {
   PARAM = "param",
   BODY = "body",
@@ -16,26 +21,42 @@ export enum ArgsType {
   RESPONSE = "response",
   COOKIE = "cookie",
 }
+
+/**
+ * Metadata shape describing a controller and its
+ * subsidiary routes. Includes all data in addtion
+ * to routes like controller action args, response
+ * codes
+ */
 export interface ControllerMetadata {
   prefix: string | null;
   routes: Map<string | Symbol, RouteDefinition>;
   defaultResponseCodes: Map<string | Symbol, number>;
   args: RouteArgument[];
 }
+/**
+ * Route definition metadata, as mapped to a controller
+ * action. Consumed in `ControllerMetadata` to build
+ * routes that oak understands
+ */
 export interface RouteDefinition {
-  // Path to our route
   path: string;
-  // HTTP Request method (get, post, ...)
   requestMethod: HttpMethod;
-  // Method name within our class responsible for this route
   methodName: string | Symbol;
 }
+/**
+ * Definition for a parameter decorator on a controller
+ * action.
+ */
 export interface RouteArgument {
   type: ArgsType;
   index: number;
   key: string;
   argFor: string | Symbol;
 }
+/**
+ * Root config for the `Application` class.
+ */
 export interface ApplicationConfig {
   controllers: any[];
 }
