@@ -11,6 +11,5 @@ export {
   Header,
   HttpStatus,
   HttpException,
-  DactylRouter,
+  Application,
 } from "../mod.ts";
-export { Application, RouterContext } from "https://deno.land/x/oak/mod.ts";

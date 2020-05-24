@@ -36,3 +36,6 @@ export interface RouteArgument {
   key: string;
   argFor: string;
 }
+export interface ApplicationConfig {
+  controllers: any[];
+}
