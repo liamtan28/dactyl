@@ -2,16 +2,23 @@
 
 ### Web framework for Deno, built on top of Oak
 
-**Note** This project is currently a proof of concept. If I decide to actively maintain this, expect concepts to change.
+## TL:DR; Available modules:
+
+Currently, through `mod.ts`, you have access to:
+
+1. `Controller` - function decorator responsible for assigning controller metadata
+2. `Application` - application class able to register controllers, and start the webserver
+3. `HttpException` - throwable exception inside controller actions, `DactylRouter` will then handle said errors at top level and send the appropriate HTTP status code and message.
+4. `HttpStatus` - function decorator responsible for assigning default status codes for controller actions
+5. `Get, Post, Put, Patch, Delete` - currently supported function decorators responsible for defining routes on controller actions
+6. `Param` - maps `context.params` onto argument in controller action
+7. `Body` - maps `context.request` async body onto argument in controller action
+8. `Query` - maps `context.url.searchParams` onto argument in controller action
+9. `Header` - maps `context.headers` onto argument in controller action
 
 ## Purpose
 
 Deno is the new kid on the block, and Oak seems to be paving the way for an express-like middleware and routing solution with our fancy new runtime. It's only natural that abstractions on top of Oak are born in the near future - much like Nest tucked express middleware and routing under the hood and provided developers with declarative controllers, DI, etc. This project aims to provide a small portion of these features with room to expand in future.
-
-Currently supported features are:
-
-1. Declarative routing via controllers and function decorators
-2. Exception filters (sort of)
 
 ## Getting started
 
@@ -38,9 +45,10 @@ Building routes...
 Routing structure below:
 
   /dinosaur
-    [GET] /
-    [GET] /:id
-    [POST] /
+     [GET] /
+     [GET] /:id
+     [POST] /
+     [PUT] /:id
 
 Dactyl Example bootstrapped - please visit http://localhost:8000/
 ```
@@ -56,27 +64,36 @@ Controllers are declared with function decorators. This stores metadata that is 
 
 ```
 import {
-  Controller,
-  Get,
-  Post,
-  HttpStatus,
-  HttpException,
-  RouterContext,
+  // ...
 } from "./deps.ts";
 
 @Controller("/dinosaur")
-class DinosaurController  {
+class DinosaurController {
   @Get("/")
   @HttpStatus(200)
-  getDinosaurs() {
+  getDinosaurs(@Query('orderBy') orderBy: any, @Query('sort') sort: any) {
+
+    const dinosaurs: any[] = [
+      { name: 'Tyrannosaurus Rex', period: 'Maastrichtian'},
+      { name: 'Velociraptor', period: 'Cretaceous' },
+      { name: 'Diplodocus', period: 'Oxfordian' }
+    ];
+
+    if(orderBy) {
+      dinosaurs.sort((a: any, b: any) => a[orderBy] < b[orderBy] ? -1 : 1);
+      if (sort === 'desc') dinosaurs.reverse();
+    }
+
     return {
       message: "Action returning all dinosaurs! Defaults to 200 status!",
+      data: dinosaurs,
     };
   }
   @Get("/:id")
-  getDinosaurById(@Params('id') id: any) {
+  getDinosaurById(@Param('id') id: any, @Header('content-type') contentType: any) {
     return {
       message: `Action returning one dinosaur with id ${id}`,
+      ContentType: contentType,
     };
   }
   @Post("/")
@@ -95,30 +112,24 @@ class DinosaurController  {
     };
   }
 }
+
 export default DinosaurController;
 ```
 
 `index.ts`
-This file bootstraps the web server by registering `DinosaurController` to the `DactylRouter`. `DactylRouter` can then use the `.middleware()` method to convert the entire router into middleware that Oak understands.
+This file bootstraps the web server by registering `DinosaurController` to the `Application` instance. `Application` can then use the `.run()` async method to start the webserver.
 
 ```
-import  { Application, DactylRouter }  from  "./deps.ts";
-import DinosaurController from  "./DinosaurController.ts";
+import { Application } from "./deps.ts";
 
-// Oak application
-const app = new Application();
+import DinosaurController from "./DinosaurController.ts";
 
-const router: DactylRouter = new DactylRouter();
-router.register(DinosaurController);
+const app: Application = new Application({
+  controllers: [DinosaurController],
+});
 
-// Register routes against Oak application
-app.use(router.middleware());
+await app.run(8000);
 
-const PORT = 8000;
-console.info(
-  `Dactyl Example bootstrapped - please visit http://localhost:${PORT}/`,
-);
-await app.listen({ port: 8000 });
 ```
 
 And away we go. This spins up a web server using oak with the appropriately registered routes based on your controller definitions.
@@ -137,14 +148,3 @@ export {
 } from "https://raw.githubusercontent.com/liamtan28/dactyl/master/mod.ts";
 ```
 
-Currently, through `mod.ts`, you have access to:
-
-1. `Controller` - function decorator responsible for assigning controller metadata
-2. `DactylRouter` - router class able to register controllers, and convert them into routes for oak to interpret
-3. `HttpException` - throwable exception inside controller actions, `DactylRouter` will then handle said errors at top level and send the appropriate HTTP status code and message.
-4. `HttpStatus` - function decorator responsible for assigning default status codes for controller actions
-5. `Get, Post, Put, Patch, Delete` - currently supported function decorators responsible for defining routes on controller actions
-6. `Param` - maps `context.params` onto argument in controller action
-7. `Body` - maps `context.request` async body onto argument in controller action
-8. `Query` - maps `context.url.searchParams` onto argument in controller action
-9. `Header` - maps `context.headers` onto argument in controller action
