@@ -148,3 +148,8 @@ export {
 } from "https://raw.githubusercontent.com/liamtan28/dactyl/master/mod.ts";
 ```
 
+**In the works**
+1. `@Injectable` - DI implementation for controllers, allowing injectible services
+2. `@Before, @BeforeAll` - decorators for controller and controller actions for pre-request actions like validation
+3. CLI tool for boilerplate generation and file structure
+4. Website with docos.
