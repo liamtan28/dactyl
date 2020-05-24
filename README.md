@@ -9,12 +9,12 @@
 Currently, through `mod.ts`, you have access to (docs link on left):
 
 1. [Controller.ts](https://doc.deno.land/https/deno.land/x/dactyl/Controller.ts) - function decorator responsible for assigning controller metadata
-2. [Application.ts](https://doc.deno.land/https/deno.land/x/dactyl/Application.ts)` - application class able to register controllers, and start the webserver
+2. [Application.ts](https://doc.deno.land/https/deno.land/x/dactyl/Application.ts) - application class able to register controllers, and start the webserver
 3. [HttpException](https://doc.deno.land/https/deno.land/x/dactyl/HttpException.ts) - throwable exception inside controller actions, `Application` will then handle said errors at top level and send the appropriate HTTP status code and message. There is also a list of included predefined `HttpException` classes, see below
 4. [HttpStatus.ts](https://doc.deno.land/https/deno.land/x/dactyl/HttpStatus.ts) - function decorator responsible for assigning default status codes for controller actions
 5. [Method.ts](https://doc.deno.land/https/deno.land/x/dactyl/Method.ts) - `@Get, @Post, @Put, @Patch, @Delete` function decorators responsible for defining routes on controller actions
 
-For following - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)
+*For following - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)*
 
 6. `@Param` decorator maps `context.params` onto argument in controller action
 7. `@Body` decorator maps `context.request` async body onto argument in controller action
