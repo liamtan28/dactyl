@@ -3,29 +3,35 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Param,
   Body,
   Query,
   Header,
+  Context,
+  Request,
+  Response,
   HttpStatus,
   HttpException,
+  RouterContext,
+  OakRequest,
+  OakResponse,
 } from "./deps.ts";
 
 @Controller("/dinosaur")
 class DinosaurController {
   @Get("/")
   @HttpStatus(200)
-  getDinosaurs(@Query('orderBy') orderBy: any, @Query('sort') sort: any) {
-
+  getDinosaurs(@Query("orderBy") orderBy: any, @Query("sort") sort: any) {
     const dinosaurs: any[] = [
-      { name: 'Tyrannosaurus Rex', period: 'Maastrichtian'},
-      { name: 'Velociraptor', period: 'Cretaceous' },
-      { name: 'Diplodocus', period: 'Oxfordian' }
+      { name: "Tyrannosaurus Rex", period: "Maastrichtian" },
+      { name: "Velociraptor", period: "Cretaceous" },
+      { name: "Diplodocus", period: "Oxfordian" },
     ];
 
-    if(orderBy) {
-      dinosaurs.sort((a: any, b: any) => a[orderBy] < b[orderBy] ? -1 : 1);
-      if (sort === 'desc') dinosaurs.reverse();
+    if (orderBy) {
+      dinosaurs.sort((a: any, b: any) => (a[orderBy] < b[orderBy] ? -1 : 1));
+      if (sort === "desc") dinosaurs.reverse();
     }
 
     return {
@@ -34,14 +40,17 @@ class DinosaurController {
     };
   }
   @Get("/:id")
-  getDinosaurById(@Param('id') id: any, @Header('content-type') contentType: any) {
+  getDinosaurById(
+    @Param("id") id: any,
+    @Header("content-type") contentType: any
+  ) {
     return {
       message: `Action returning one dinosaur with id ${id}`,
       ContentType: contentType,
     };
   }
   @Post("/")
-  async createDinosaur(@Body('name') name: any) {
+  createDinosaur(@Body("name") name: any) {
     if (!name) {
       throw new HttpException("name is a required field", 400);
     }
@@ -50,9 +59,19 @@ class DinosaurController {
     };
   }
   @Put("/:id")
-  async updateDinosaur(@Param('id') id: any, @Body('name') name: any) {
+  updateDinosaur(@Param("id") id: any, @Body("name") name: any) {
     return {
       message: `Updated name of dinosaur with id ${id} to ${name}`,
+    };
+  }
+  @Delete("/:id")
+  deleteDinosaur(
+    @Context() ctx: RouterContext,
+    @Request() req: OakRequest,
+    @Response() res: OakResponse
+  ) {
+    return {
+      message: `Deleted dinosaur with id ${ctx.params.id}`,
     };
   }
 }

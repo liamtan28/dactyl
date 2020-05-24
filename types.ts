@@ -15,6 +15,10 @@ export enum EArgsType {
   BODY = "body",
   QUERY = "query",
   HEADER = "header",
+  CONTEXT = "context",
+  REQUEST = "request",
+  RESPONSE = "response",
+  COOKIE = "cookie",
 }
 export interface ControllerMetadata {
   prefix: string | null;

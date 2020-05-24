@@ -6,6 +6,7 @@ import {
   ControllerMetadata,
   RouteArgument,
 } from "./types.ts";
+
 import { HttpException } from "./HttpException.ts";
 import { RouterContext } from "./deps.ts";
 import { getMeta } from "./metadata.ts";
@@ -57,7 +58,8 @@ export class DactylRouter {
               params,
               body,
               query,
-              headers
+              headers,
+              context
             );
             // execute controller action here. Assume async. If not,
             // controller action will just be wrapped in Promise
@@ -112,6 +114,7 @@ export class DactylRouter {
   private async retrieveFromContext(context: RouterContext) {
     const url: URL = context.request.url;
     const headersRaw: Headers = context.request.headers;
+
     const paramsFromContext: any = context.params;
 
     const headersFromContext: any = {};
@@ -143,7 +146,8 @@ export class DactylRouter {
     params: any,
     body: any,
     query: any,
-    headers: any
+    headers: any,
+    context: RouterContext
   ): any[] {
     // Filter out args for this specific controller action
     const filteredArguments: RouteArgument[] = args.filter(
@@ -164,6 +168,12 @@ export class DactylRouter {
           return query[arg.key];
         case EArgsType.HEADER:
           return headers[arg.key];
+        case EArgsType.CONTEXT:
+          return context;
+        case EArgsType.REQUEST:
+          return context.request;
+        case EArgsType.RESPONSE:
+          return context.response;
         default:
           // TODO probably bad way here, but should
           // get 500 if weird argsdefinition
