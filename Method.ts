@@ -1,9 +1,8 @@
 import { EHttpMethod, ControllerMetadata } from "./types.ts";
 import {
-  getMeta,
+  getControllerMeta,
   ensureController,
-  setMeta,
-  CONTROLLER_META_PROPKEY,
+  setControllerMeta,
 } from "./metadata.ts";
 /**
  * Responsible for producing function decorators for all given HttpMethods.
@@ -18,10 +17,7 @@ const defineRouteDecorator = (requestMethod: EHttpMethod) => (
   ensureController(target.constructor);
   // Create a clone of the currently stored routes on the controller class, and push the new
   // value into it.
-  const meta: ControllerMetadata = getMeta(
-    target.constructor,
-    CONTROLLER_META_PROPKEY
-  );
+  const meta: ControllerMetadata = getControllerMeta(target.constructor);
 
   meta.routes.set(propertyKey, {
     requestMethod,
@@ -30,7 +26,7 @@ const defineRouteDecorator = (requestMethod: EHttpMethod) => (
   });
 
   // Re-define the routes attribute on the controller class, now including the new route
-  setMeta(target.constructor, CONTROLLER_META_PROPKEY, meta);
+  setControllerMeta(target.constructor, meta);
 };
 // Define a decorator and export it for each of the supported HttpMethods
 export const Get = defineRouteDecorator(EHttpMethod.GET);

@@ -2,10 +2,9 @@
 
 import { ControllerMetadata, RouteDefinition } from "./types.ts";
 import {
-  setMetaIfNotDefined,
-  getMeta,
-  setMeta,
-  CONTROLLER_META_PROPKEY,
+  setControllerMetaIfNotDefined,
+  getControllerMeta,
+  setControllerMeta,
 } from "./metadata.ts";
 /**
  * Controller Class decorator responsible for initialising metadata on the controller class.
@@ -13,13 +12,13 @@ import {
  */
 export function Controller(prefix: string = "/"): ClassDecorator {
   return (target: Function): void => {
-    setMetaIfNotDefined(target, CONTROLLER_META_PROPKEY, {
+    setControllerMetaIfNotDefined(target, {
       prefix,
       routes: new Map<string, RouteDefinition>(),
     });
 
-    const meta: ControllerMetadata = getMeta(target, CONTROLLER_META_PROPKEY);
+    const meta: ControllerMetadata = getControllerMeta(target);
     meta.prefix = prefix;
-    setMeta(target, CONTROLLER_META_PROPKEY, meta);
+    setControllerMeta(target, meta);
   };
 }

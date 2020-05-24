@@ -10,16 +10,17 @@ Currently, through `mod.ts`, you have access to:
 
 1. `Controller` - function decorator responsible for assigning controller metadata
 2. `Application` - application class able to register controllers, and start the webserver
-3. `HttpException` - throwable exception inside controller actions, `Application` will then handle said errors at top level and send the appropriate HTTP status code and message. There is also a list of included predefined `HttpException` classes, see below.
+3. `HttpException` - throwable exception inside controller actions, `Application` will then handle said errors at top level and send the appropriate HTTP status code and message. There is also a list of included predefined `HttpException` classes, see below - [HttpException.ts](https://doc.deno.land/https/deno.land/x/dactyl/HttpException.ts)
+
 4. `HttpStatus` - function decorator responsible for assigning default status codes for controller actions
 5. `Get, Post, Put, Patch, Delete` - currently supported function decorators responsible for defining routes on controller actions
-6. `Param` - maps `context.params` onto argument in controller action
-7. `Body` - maps `context.request` async body onto argument in controller action
-8. `Query` - maps `context.url.searchParams` onto argument in controller action
-9. `Header` - maps `context.headers` onto argument in controller action
-10. `Context` - return whole Oak `RouterContext` object
-11. `Request` - return whole Oak `Request` object
-12. `Response` - return whole Oak `Response` object
+6. `Param` - maps `context.params` onto argument in controller action - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
+7. `Body` - maps `context.request` async body onto argument in controller action - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
+8. `Query` - maps `context.url.searchParams` onto argument in controller action - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
+9. `Header` - maps `context.headers` onto argument in controller action - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
+10. `Context` - return whole Oak `RouterContext` object - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
+11. `Request` - return whole Oak `Request` object - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
+12. `Response` - return whole Oak `Response` object - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
 
 ## Purpose
 
@@ -170,7 +171,7 @@ use a predefined `HttpException` (listed below):
 16. `ServiceUnavailableException`
 17. `GatewayTimeoutException`
 
-Doc: [HttpException.ts](https://doc.deno.land/https/deno.land/x/dactyl/HttpException.ts)
+[HttpException.ts](https://doc.deno.land/https/deno.land/x/dactyl/HttpException.ts)
 
 ## Modules
 

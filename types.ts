@@ -18,8 +18,8 @@ export enum EArgsType {
 }
 export interface ControllerMetadata {
   prefix: string | null;
-  routes: Map<string, RouteDefinition>;
-  defaultResponseCodes: Map<string, number>;
+  routes: Map<string | Symbol, RouteDefinition>;
+  defaultResponseCodes: Map<string | Symbol, number>;
   args: RouteArgument[];
 }
 export interface RouteDefinition {

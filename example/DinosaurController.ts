@@ -40,10 +40,7 @@ class DinosaurController {
     };
   }
   @Get("/:id")
-  getDinosaurById(
-    @Param("id") id: any,
-    @Header("content-type") contentType: any
-  ) {
+  getDinosaurById(@Param("id") id: any, @Header("content-type") contentType: any) {
     return {
       message: `Action returning one dinosaur with id ${id}`,
       ContentType: contentType,

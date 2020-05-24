@@ -3,9 +3,8 @@
 import { EArgsType, ControllerMetadata } from "./types.ts";
 import {
   ensureController,
-  getMeta,
-  setMeta,
-  CONTROLLER_META_PROPKEY,
+  getControllerMeta,
+  setControllerMeta,
 } from "./metadata.ts";
 
 /**
@@ -30,10 +29,7 @@ export function defineParameterDecorator(
 
     ensureController(target.constructor);
 
-    const meta: ControllerMetadata = getMeta(
-      target.constructor,
-      CONTROLLER_META_PROPKEY
-    );
+    const meta: ControllerMetadata = getControllerMeta(target.constructor);
 
     meta.args.push({
       type: argType,
@@ -42,7 +38,7 @@ export function defineParameterDecorator(
       argFor: propertyKey,
     });
 
-    setMeta(target.constructor, CONTROLLER_META_PROPKEY, meta);
+    setControllerMeta(target.constructor, meta);
   };
 }
 

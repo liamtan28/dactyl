@@ -9,7 +9,7 @@ import {
 
 import { HttpException } from "./HttpException.ts";
 import { RouterContext, Status } from "./deps.ts";
-import { getMeta, CONTROLLER_META_PROPKEY } from "./metadata.ts";
+import { getControllerMeta, CONTROLLER_META_PROPKEY } from "./metadata.ts";
 
 export class Router extends OakRouter {
   public constructor() {
@@ -25,10 +25,7 @@ export class Router extends OakRouter {
   public register(controller: any): void {
     const instance: any = new controller();
 
-    const meta: ControllerMetadata = getMeta(
-      controller,
-      CONTROLLER_META_PROPKEY
-    );
+    const meta: ControllerMetadata = getControllerMeta(controller);
     if (!meta || !meta.prefix) {
       throw new Error(
         "Attempted to register non-controller class to DactylRouter"
