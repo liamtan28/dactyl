@@ -8,6 +8,7 @@ import {
 } from "./model.ts";
 import { HttpException } from "./HttpException.ts";
 import { RouterContext } from "./deps.ts";
+import { getMeta } from "./metadata.ts";
 
 export class DactylRouter {
   private router: OakRouter;
@@ -24,7 +25,7 @@ export class DactylRouter {
   public register(controller: any): void {
     const instance: any = new controller();
 
-    const meta: ControllerMetadata = Reflect.get(
+    const meta: ControllerMetadata = getMeta(
       controller,
       "controllerMetadata",
     );
@@ -74,7 +75,6 @@ export class DactylRouter {
             // In the example that the controller method returned no data, but
             // the response object was accessed directly and thus has finished
             // replying to the client, return early as no more has to be done.
-            // TODO cehck if this works the same in deno
             if (!response && context.response.body) return;
             // If the response is empty, but there has been no response sent,
             // instead call the sendNoData method and reply with a 204

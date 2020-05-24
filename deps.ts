@@ -1,1 +1,5 @@
-export { Router, RouterContext } from "https://deno.land/x/oak/mod.ts";
+export {
+  Router,
+  Application,
+  RouterContext,
+} from "https://deno.land/x/oak/mod.ts";
