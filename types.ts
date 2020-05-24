@@ -1,3 +1,5 @@
+// Copyright 2020 Liam Tan. All rights reserved. MIT license.
+
 export enum HttpMethod {
   GET = "get",
   POST = "post",

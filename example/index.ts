@@ -1,3 +1,5 @@
+// Copyright 2020 Liam Tan. All rights reserved. MIT license.
+
 import { Application } from "./deps.ts";
 
 import DinosaurController from "./DinosaurController.ts";

@@ -1,3 +1,5 @@
+// Copyright 2020 Liam Tan. All rights reserved. MIT license.
+
 // For your own project, deps.ts should re-export
 // these deps from https://deno.land/x/dactyl/mod.ts
 export {
