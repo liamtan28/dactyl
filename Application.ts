@@ -9,11 +9,11 @@ import {
 import { DactylRouter } from "./DactylRouter.ts";
 import { ApplicationConfig } from "./types.ts";
 
-/**
- * Bootstrap class responsible for registering controllers
- * onto Router, and starting the Oak webserver
- */
 export class Application {
+  /**
+   * Bootstrap class responsible for registering controllers
+   * onto Router, and starting the Oak webserver
+   */
   private router: DactylRouter;
   private app: OakApplication;
 
@@ -37,11 +37,13 @@ export class Application {
       };
     });
   }
-  /**
-   * Execute the Oak webserver here. Port is a required field.
-   * Console will be notified when server begins
-   */
-  public async run(port: number) {
+  public async run(port: number): Promise<void> {
+    /**
+     * Function responsible for begin listen of oak webserver.
+     *
+     * The webserver will start on port `port` as provided as
+     * an argument.
+     */
     console.info(
       `Dactyl bootstrapped - please visit http://localhost:${port}/`
     );
