@@ -152,25 +152,23 @@ And away we go. This spins up a web server using oak with the appropriately regi
 Exceptions can be raised at any time in the request lifecycle. `HttpException` allows you to raise a custom exception, or you can
 use a predefined `HttpException` (listed below):
 
-```
-  BadRequestException
-  UnauthorizedException
-  PaymentRequiredException
-  ForbiddenException
-  NotFoundException
-  MethodNotAllowedException
-  RequestTimeoutException
-  UnsupportedMediaTypeException
-  TeapotException
-  UnprocessableEntityException
-  TooManyRequestsException
-  RequestHeaderFieldsTooLargeException
-  InternalServerErrorException
-  NotImplementedException
-  BadGatewayException
-  ServiceUnavailableException
-  GatewayTimeoutException
-```
+1. `BadRequestException`
+2. `UnauthorizedException`
+3. `PaymentRequiredException`
+4. `ForbiddenException`
+5. `NotFoundException`
+6. `MethodNotAllowedException`
+7. `RequestTimeoutException`
+8. `UnsupportedMediaTypeException`
+9. `TeapotException`
+10. `UnprocessableEntityException`
+11. `TooManyRequestsException`
+12. `RequestHeaderFieldsTooLargeException`
+13. `InternalServerErrorException`
+14. `NotImplementedException`
+15. `BadGatewayException`
+16. `ServiceUnavailableException`
+17. `GatewayTimeoutException`
 
 ## Modules
 
