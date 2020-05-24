@@ -1,4 +1,7 @@
-import { Router as OakRouter } from "./deps.ts";
+// Copyright 2020 Liam Tan. All rights reserved. MIT license.
+
+import { Router as OakRouter, Middleware } from "./deps.ts";
+
 import {
   RouteDefinition,
   HttpMethod,
@@ -8,19 +11,45 @@ import {
 } from "./types.ts";
 
 import { HttpException } from "./HttpException.ts";
-import { RouterContext, Status } from "./deps.ts";
-import { getControllerMeta, CONTROLLER_META_PROPKEY } from "./metadata.ts";
+import { RouterContext, Status, STATUS_TEXT } from "./deps.ts";
+import { getControllerMeta } from "./metadata.ts";
 
+/**
+ * Router subclass - abstraction on top of `Router` class from Oak.
+ *
+ * exposes methods `Router.register()` and `router.middleware()` to
+ * `Application` class for bootstrapping Oak application
+ */
 export class Router extends OakRouter {
   public constructor() {
     super();
-    console.info("\nDactyl Framework");
-    console.info("Building routes...\nRouting structure below:\n");
+    console.info(`\
+______           _         _ 
+|  _  \\         | |       | |
+| | | |__ _  ___| |_ _   _| |
+| | | / _\` |/ __| __| | | | |
+| |/ / (_| | (__| |_| |_| | |
+|___/ \\__,_|\\___|\\__|\\__, |_| FRAMEWORK
+                      __/ |  
+                      |___/   
+    `);
+    console.info("Registered routes:\n");
   }
   /**
-   * the register method is responsible for binding controllers to the
-   * router. This is acheived by stripping the metadata from controllers
-   * and creating tangible routes defined on the express router.
+   * Register function consumed by `Application`, takes controller
+   * class definition and strips it's metadata. From this metadata,
+   * the `register` function appropriately configures `super()` oak
+   * router. An instance of the provided controller class definition
+   * is created, and the controller's actions are mapped to routes,
+   * E.g.
+   *
+   * ```ts
+   * import { DinosaurController } from "./example/DinosaurController.ts";
+   *
+   * const router: Router = new Router();
+   * router.register(DinosaurController);
+   * // router superclass now configured to use DinosaurController's actions
+   * ```
    */
   public register(controller: any): void {
     const instance: any = new controller();
@@ -29,20 +58,23 @@ export class Router extends OakRouter {
     if (!meta || !meta.prefix) {
       throw new Error("Attempted to register non-controller class to DactylRouter");
     }
-    console.info(`  ${meta.prefix}`);
-    meta.routes.forEach((route: RouteDefinition): void => {
-      console.info(`     [${route.requestMethod.toUpperCase()}] ${route.path}`);
+    console.info(`\t${meta.prefix}`);
 
+    meta.routes.forEach((route: RouteDefinition): void => {
+      console.info(`\t\t[${route.requestMethod.toUpperCase()}] ${route.path}`);
+
+      // normalize path if required
       let path: string = meta.prefix + route.path;
       if (path.slice(-1) === "/") {
         path = path.slice(0, -1);
       }
+
       // Call routing function on OakRouter superclass
       this[route.requestMethod](
         path,
         async (context: RouterContext): Promise<void> => {
           try {
-            const [params, headers, query, body] = await this.retrieveFromContext(context);
+            const { params, headers, query, body } = await this.retrieveFromContext(context);
 
             const routeArgs: any[] = this.buildRouteArgumentsFromMeta(
               meta.args,
@@ -53,37 +85,29 @@ export class Router extends OakRouter {
               headers,
               context
             );
-            // execute controller action here. Assume async. If not,
-            // controller action will just be wrapped in Promise
+
+            // call controller action here. Provide arguments injected via parameter
+            // decorator function metadata
             const response: any = await instance[route.methodName as string](...routeArgs);
 
-            // In the example that the controller method returned no data, but
-            // the response object was accessed directly and thus has finished
-            // replying to the client, return early as no more has to be done.
+            // controller action manually accesses context.request.body and returns nothing
+            // so return early
             if (!response && context.response.body) return;
-            // If the response is empty, but there has been no response sent,
-            // instead call the sendNoData method and reply with a 204
-            // No Content. Warn the developer in dev mode as this was
-            // likely a mistake.
+            // controller action returned no data, and didn't attach anything to response
+            // body. Assume 204 no content.
             else if (!response && !context.response.body) {
-              return this.sendNoData(route, controller, context.response);
+              return this.sendNoData(context.response);
             }
-            // Generate the statusCode to reply with. If the method name
-            // has a status code specified by the HttpStatus function
-            // decorator, use that one. If none was specified, and
-            // a default must be used, use 201 for POST requests,
-            // and 200 for all others.
+
             const statusCode: number =
               meta.defaultResponseCodes.get(route.methodName) ||
               (route.requestMethod == HttpMethod.POST ? 201 : 200);
-            // If we have reached the end of the control statement, the response
-            // is ready to be sent. Specify the status code and respond to the
-            // client with the response from the controller method.
+
+            // Assign body and status here before oak middleware moves to next
             context.response.body = response;
             context.response.status = statusCode;
           } catch (error) {
-            // throw error here, or handle unknown error
-            // if not of HttpException type
+            // Handle known error here
             if (error instanceof HttpException) {
               const response: {
                 error: string | undefined;
@@ -92,39 +116,52 @@ export class Router extends OakRouter {
               context.response.status = response.status;
               context.response.body = response;
             } else {
-              console.error(error);
-              this.handleUnknownException(route, controller, context.response);
+              this.handleUnknownException(error, context.response);
             }
           }
         }
       );
     });
-    console.info("");
   }
-  private async retrieveFromContext(context: RouterContext) {
+  /**
+   * Helper function for deconstructing Oaks `RouterContext` context
+   * object. Retreives `context.params`, `context.request.headers`,
+   * `context.request.url.searchParams`, and `context.request.body()`
+   * and maps them appropriately
+   */
+  private async retrieveFromContext(
+    context: RouterContext
+  ): Promise<{
+    params: any;
+    headers: any;
+    query: any;
+    body: any;
+  }> {
     const url: URL = context.request.url;
     const headersRaw: Headers = context.request.headers;
 
-    const paramsFromContext: any = context.params;
+    const params: any = context.params;
 
-    const headersFromContext: any = {};
+    const headers: any = {};
     for (const [key, value] of headersRaw.entries()) {
-      headersFromContext[key] = value;
+      headers[key] = value;
     }
 
-    const queryFromContext: any = {};
+    const query: any = {};
     for (const [key, value] of url.searchParams.entries()) {
-      queryFromContext[key] = value;
+      query[key] = value;
     }
 
-    // TODO probably should use context.request.hasBody()
-    // and some fancy logic to not call async action if
-    // not needed
-    const bodyFromContext: any = await context.request.body();
-    // Map ParamDefinitions onto the actual params
-    // from route
-    return [paramsFromContext, headersFromContext, queryFromContext, bodyFromContext];
+    let body: any = {};
+    if (context.request.hasBody) body = await context.request.body();
+
+    return { params, headers, query, body };
   }
+
+  /**
+   * Helper method for constructing controller action arguments
+   * from metadata on the controller.
+   */
   private buildRouteArgumentsFromMeta(
     args: RouteArgument[],
     methodName: string,
@@ -134,13 +171,18 @@ export class Router extends OakRouter {
     headers: any,
     context: RouterContext
   ): any[] {
-    // Filter out args for this specific controller action
+    // Filter controller metadata to only include arg definitions
+    // for this action
     const filteredArguments: RouteArgument[] = args.filter(
-      (arg: RouteArgument) => arg.argFor === methodName
+      (arg: RouteArgument): boolean => arg.argFor === methodName
     );
-    // Sort params by index to ensure order
-    filteredArguments.sort((a: RouteArgument, b: RouteArgument) => a.index - b.index);
 
+    // Metadata is assigned in a non-deterministic order, so
+    // ensure order by sorting on index.
+    filteredArguments.sort((a: RouteArgument, b: RouteArgument): number => a.index - b.index);
+
+    // Determined by the type of parameter decorator used, map the
+    // arguments metadata onto the appropriate data source
     return filteredArguments.map((arg: RouteArgument): any => {
       switch (arg.type) {
         case ArgsType.PARAM:
@@ -158,59 +200,48 @@ export class Router extends OakRouter {
         case ArgsType.RESPONSE:
           return context.response;
         default:
-          // TODO probably bad way here, but should
-          // get 500 if weird argsdefinition
           throw null;
       }
     });
   }
   /**
-   * middleware getter for the internal router. To be used in application bootstrap
-   * where appropriate. Also maps the last route, which is the 404 no match route.
+   * middleware getter for the internal router. To be used in `Application` bootstrap
+   * where appropriate, E.g.
+   *
+   * ```ts
+   * // From Oak
+   * const app: Application = new Application();
+   * // From Dactyl
+   * const router: Router = new Router();
+   * // ... register controllers ...
+   * app.use(router.middleware());
+   * // routes now mapped to oak
+   * ```
    */
-  public middleware(): any {
+  public middleware(): Middleware {
     return this.routes();
   }
   /**
-   * sendNoData method
-   *
-   * This method is called when a route has not returned any payload, and when
-   * it has also not accessed the response object from express directly and
-   * sent a request.
+   * Helper method called when controller action returns no json, and
+   * `RouterContext` `context.response.body` contains no body
    */
-  private sendNoData(route: RouteDefinition, controller: any, res: any): void {
-    // Warn the user here that no data has been returned from the controller method.
-    // It is important to do so as this is likely a mistake.
-    console.warn(
-      ` * Warning - Method returned no response: ${controller.toString().split(" ")[1]}\n`,
-      `* Route:                                 ${
-        Reflect.get(controller, "prefix") + route.path
-      }\n`,
-      `* Controller method name:                ${route.methodName}\n`,
-      `* HTTP method type:                      ${route.requestMethod}\n`
-    );
+  private sendNoData(res: any): void {
     // Send 204 No Content.
-    res.status = 204;
+    res.status = Status.NoContent;
   }
   /**
-   * handleUnknownException method, returning 500 when no HttpException was explicitly
-   * raised. This could be caused by an unhandled promise rejection, or a custom error
+   * Helper method for handling non-standard exceptions raised at runtime.
+   * This could be caused by an unhandled promise rejection, or a custom error
    * thrown either internally or from an external module.
+   *
+   * Dactyl will send a 500 error to the end user.
    */
-  private handleUnknownException(route: RouteDefinition, controller: any, res: any): void {
-    // Notify the user of the error, including all metadata associated with the
-    // request.
-    console.error(
-      ` * Error - Unknown exception thrown: ${controller.toString().split(" ")[1]}\n`,
-      `* Route:                    ${Reflect.get(controller, "prefix") + route.path}\n`,
-      `* Controller method name:   ${route.methodName}\n`,
-      `* HTTP method type:         ${route.requestMethod}\n`
-    );
-    // Return a 500 error to the user.
-    res.status = 500;
+  private handleUnknownException(error: any, res: any): void {
+    console.error(error);
+    res.status = Status.InternalServerError;
     res.body = {
-      error: "Internal Server Error",
-      status: 500,
+      error: STATUS_TEXT.get(Status.InternalServerError),
+      status: Status.InternalServerError,
     };
   }
 }

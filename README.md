@@ -13,14 +13,14 @@ Currently, through `mod.ts`, you have access to:
 3. `HttpException` - throwable exception inside controller actions, `Application` will then handle said errors at top level and send the appropriate HTTP status code and message. There is also a list of included predefined `HttpException` classes, see below - [HttpException.ts](https://doc.deno.land/https/deno.land/x/dactyl/HttpException.ts)
 
 4. `HttpStatus` - function decorator responsible for assigning default status codes for controller actions
-5. `Get, Post, Put, Patch, Delete` - currently supported function decorators responsible for defining routes on controller actions
-6. `Param` - maps `context.params` onto argument in controller action - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
-7. `Body` - maps `context.request` async body onto argument in controller action - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
-8. `Query` - maps `context.url.searchParams` onto argument in controller action - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
-9. `Header` - maps `context.headers` onto argument in controller action - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
-10. `Context` - return whole Oak `RouterContext` object - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
-11. `Request` - return whole Oak `Request` object - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
-12. `Response` - return whole Oak `Response` object - [Arg.ts](https://deno.land/x/dactyl/Arg.ts)
+5. `Get, Post, Put, Patch, Delete` - currently supported function decorators responsible for defining routes on controller actions - [Method.ts](https://doc.deno.land/https/deno.land/x/dactyl/Method.ts)
+6. `Param` - maps `context.params` onto argument in controller action - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)
+7. `Body` - maps `context.request` async body onto argument in controller action - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)
+8. `Query` - maps `context.url.searchParams` onto argument in controller action - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)
+9. `Header` - maps `context.headers` onto argument in controller action - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)
+10. `Context` - return whole Oak `RouterContext` object - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)
+11. `Request` - return whole Oak `Request` object - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)
+12. `Response` - return whole Oak `Response` object - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)
 
 ## Purpose
 
@@ -46,18 +46,25 @@ One caveat is to ensure you have a `tsconfig.json` file enabling `Reflect` and f
 This should result in the following output:
 
 ```
-Dactyl Framework - Authored by Liam Tan 2020
-Building routes...
-Routing structure below:
+______           _         _
+|  _  \         | |       | |
+| | | |__ _  ___| |_ _   _| |
+| | | / _` |/ __| __| | | | |
+| |/ / (_| | (__| |_| |_| | |
+|___/ \__,_|\___|\__|\__, |_| FRAMEWORK
+                      __/ |
+                      |___/
 
-  /dinosaur
-     [GET] /
-     [GET] /:id
-     [POST] /
-     [PUT] /:id
-     [DELETE] /:id
+Registered routes:
 
-Dactyl bootstrapped - please visit http://localhost:8000/
+        /dinosaur
+                [GET] /
+                [GET] /:id
+                [POST] /
+                [PUT] /:id
+                [DELETE] /:id
+
+Dactyl running - please visit http://localhost:8000/
 ```
 
 You can now visit your API.
@@ -92,10 +99,7 @@ class DinosaurController {
     };
   }
   @Get("/:id")
-  getDinosaurById(
-    @Param("id") id: any,
-    @Header("content-type") contentType: any
-  ) {
+  getDinosaurById(@Param("id") id: any, @Header("content-type") contentType: any) {
     return {
       message: `Action returning one dinosaur with id ${id}`,
       ContentType: contentType,
@@ -179,11 +183,7 @@ All modules are accessible without the example project by referring to them in y
 E.g.
 
 ```ts
-export {
-  Controller,
-  DactylRouter,
-  Get,
-} from "https://deno.land/x/dactyl/mod.ts";
+export { Controller, DactylRouter, Get } from "https://deno.land/x/dactyl/mod.ts";
 ```
 
 **In the works**

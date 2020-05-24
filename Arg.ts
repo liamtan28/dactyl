@@ -51,7 +51,7 @@ export function Param(paramKey: string): ParameterDecorator {
  *
  * ```ts
  * public controllerAction(@Body('name') name: string): any { }
- * ``
+ * ```
  */
 export function Body(bodyKey: string): ParameterDecorator {
   return defineParameterDecorator(ArgsType.BODY, true, bodyKey);

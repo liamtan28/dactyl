@@ -1,4 +1,5 @@
-// root export for submodules of dactyl lib
+// Copyright 2020 Liam Tan. All rights reserved. MIT license.
+
 export { Controller } from "./Controller.ts";
 export { Get, Post, Put, Patch, Delete } from "./Method.ts";
 export { Application } from "./Application.ts";
