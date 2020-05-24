@@ -2,7 +2,7 @@ import { Router as OakRouter } from "./deps.ts";
 import {
   RouteDefinition,
   EHttpMethod,
-  EArgsType,
+  ArgsType,
   ControllerMetadata,
   RouteArgument,
 } from "./types.ts";
@@ -143,19 +143,19 @@ export class Router extends OakRouter {
 
     return filteredArguments.map((arg: RouteArgument): any => {
       switch (arg.type) {
-        case EArgsType.PARAM:
+        case ArgsType.PARAM:
           return params[arg.key];
-        case EArgsType.BODY:
+        case ArgsType.BODY:
           return body.value[arg.key];
-        case EArgsType.QUERY:
+        case ArgsType.QUERY:
           return query[arg.key];
-        case EArgsType.HEADER:
+        case ArgsType.HEADER:
           return headers[arg.key];
-        case EArgsType.CONTEXT:
+        case ArgsType.CONTEXT:
           return context;
-        case EArgsType.REQUEST:
+        case ArgsType.REQUEST:
           return context.request;
-        case EArgsType.RESPONSE:
+        case ArgsType.RESPONSE:
           return context.response;
         default:
           // TODO probably bad way here, but should

@@ -1,19 +1,17 @@
-import { EHttpMethod, ControllerMetadata } from "./types.ts";
+// Copyright 2020 Liam Tan. All rights reserved. MIT license.
+
+import { HttpMethod, ControllerMetadata } from "./types.ts";
 import { getControllerMeta, ensureController, setControllerMeta } from "./metadata.ts";
 /**
  * Responsible for producing function decorators for all given HttpMethods.
  * Uses a curried function to return the function decorator.
  */
-const defineRouteDecorator = (requestMethod: EHttpMethod) => (path: string): any => (
+const defineRouteDecorator = (path: string = "/", requestMethod: HttpMethod): MethodDecorator => (
   target: any,
-  propertyKey: string
+  propertyKey: string | Symbol
 ): void => {
-  // You can't ensure order of function decorators,
-  // so ensure constructor has boilerplate metadata
-  // before execution.
   ensureController(target.constructor);
-  // Create a clone of the currently stored routes on the controller class, and push the new
-  // value into it.
+
   const meta: ControllerMetadata = getControllerMeta(target.constructor);
 
   meta.routes.set(propertyKey, {
@@ -22,12 +20,106 @@ const defineRouteDecorator = (requestMethod: EHttpMethod) => (path: string): any
     methodName: propertyKey,
   });
 
-  // Re-define the routes attribute on the controller class, now including the new route
   setControllerMeta(target.constructor, meta);
 };
-// Define a decorator and export it for each of the supported HttpMethods
-export const Get = defineRouteDecorator(EHttpMethod.GET);
-export const Put = defineRouteDecorator(EHttpMethod.PUT);
-export const Post = defineRouteDecorator(EHttpMethod.POST);
-export const Patch = defineRouteDecorator(EHttpMethod.PATCH);
-export const Delete = defineRouteDecorator(EHttpMethod.DELETE);
+
+/**
+ * Method decorator function for mapping Get requests.
+ *
+ * `path` will be the routed path with the prefix of the
+ * parent controller prefix, E.g.
+ *
+ * ```ts
+ *  @Controller('api')
+ *  class DefaultController {
+ *    @Get('/:id')
+ *    public controllerAction(): any {}
+ *  }
+ * ```
+ *
+ * The above action `controllerAction` will then be mapped
+ * to `GET` requests that match pattern `api/:id`
+ */
+export function Get(path?: string): MethodDecorator {
+  return defineRouteDecorator(path, HttpMethod.GET);
+}
+/**
+ * Method decorator function for mapping Put requests.
+ *
+ * `path` will be the routed path with the prefix of the
+ * parent controller prefix, E.g.
+ *
+ * ```ts
+ *  @Controller('api')
+ *  class DefaultController {
+ *    @Put('/:id')
+ *    public controllerAction(): any {}
+ *  }
+ * ```
+ *
+ * The above action `controllerAction` will then be mapped
+ * to `PUT` requests that match pattern `api/:id`
+ */
+export function Put(path?: string): MethodDecorator {
+  return defineRouteDecorator(path, HttpMethod.PUT);
+}
+/**
+ * Method decorator function for mapping Post requests.
+ *
+ * `path` will be the routed path with the prefix of the
+ * parent controller prefix, E.g.
+ *
+ * ```ts
+ *  @Controller('api')
+ *  class DefaultController {
+ *    @Post('/:id')
+ *    public controllerAction(): any {}
+ *  }
+ * ```
+ *
+ * The above action `controllerAction` will then be mapped
+ * to `POST` requests that match pattern `api/:id`
+ */
+export function Post(path?: string): MethodDecorator {
+  return defineRouteDecorator(path, HttpMethod.POST);
+}
+/**
+ * Method decorator function for mapping Patch requests.
+ *
+ * `path` will be the routed path with the prefix of the
+ * parent controller prefix, E.g.
+ *
+ * ```ts
+ *  @Controller('api')
+ *  class DefaultController {
+ *    @Patch('/:id')
+ *    public controllerAction(): any {}
+ *  }
+ * ```
+ *
+ * The above action `controllerAction` will then be mapped
+ * to `PATCH` requests that match pattern `api/:id`
+ */
+export function Patch(path?: string): MethodDecorator {
+  return defineRouteDecorator(path, HttpMethod.PATCH);
+}
+/**
+ * Method decorator function for mapping Delete requests.
+ *
+ * `path` will be the routed path with the prefix of the
+ * parent controller prefix, E.g.
+ *
+ * ```ts
+ *  @Controller('api')
+ *  class DefaultController {
+ *    @Delete('/:id')
+ *    public controllerAction(): any {}
+ *  }
+ * ```
+ *
+ * The above action `controllerAction` will then be mapped
+ * to `DELETE` requests that match pattern `api/:id`
+ */
+export function Delete(path?: string): MethodDecorator {
+  return defineRouteDecorator(path, HttpMethod.DELETE);
+}

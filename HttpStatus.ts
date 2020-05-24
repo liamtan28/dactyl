@@ -9,9 +9,9 @@ import { Status } from "./deps.ts";
  * HttpStatus MethodDecorator specifies the default response code of
  * a given controller action, E.g.
  *
- * ```
- *   @HttpStatus(200)
- *   public controllerAction() {}
+ * ```ts
+ * @HttpStatus(200)
+ * public controllerAction() {}
  * ```
  */
 export function HttpStatus(code: Status): MethodDecorator {

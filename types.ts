@@ -1,4 +1,4 @@
-export enum EHttpMethod {
+export enum HttpMethod {
   GET = "get",
   POST = "post",
   PUT = "put",
@@ -6,7 +6,7 @@ export enum EHttpMethod {
   DELETE = "delete",
 }
 
-export enum EArgsType {
+export enum ArgsType {
   PARAM = "param",
   BODY = "body",
   QUERY = "query",
@@ -26,12 +26,12 @@ export interface RouteDefinition {
   // Path to our route
   path: string;
   // HTTP Request method (get, post, ...)
-  requestMethod: EHttpMethod;
+  requestMethod: HttpMethod;
   // Method name within our class responsible for this route
-  methodName: string;
+  methodName: string | Symbol;
 }
 export interface RouteArgument {
-  type: EArgsType;
+  type: ArgsType;
   index: number;
   key: string;
   argFor: string | Symbol;
