@@ -14,7 +14,7 @@ Currently, through `mod.ts`, you have access to (docs link on left):
 4. [HttpStatus.ts](https://doc.deno.land/https/deno.land/x/dactyl/HttpStatus.ts) - function decorator responsible for assigning default status codes for controller actions
 5. [Method.ts](https://doc.deno.land/https/deno.land/x/dactyl/Method.ts) - `@Get, @Post, @Put, @Patch, @Delete` function decorators responsible for defining routes on controller actions
 
-*For following - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)*
+_For following - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)_
 
 6. `@Param` decorator maps `context.params` onto argument in controller action
 7. `@Body` decorator maps `context.request` async body onto argument in controller action
@@ -23,6 +23,9 @@ Currently, through `mod.ts`, you have access to (docs link on left):
 10. `@Context` - return whole Oak `RouterContext` object
 11. `@Request` - return whole Oak `Request` object
 12. `@Response` - return whole Oak `Response` object
+
+13. [Router.ts](https://doc.deno.land/https/deno.land/x/dactyl/Router.ts) - It is recommended that you use the `Application` to bootstrap, but you can use the `Router`
+    class directly. This is a superclass of Oak's router, and exposes additional methods for mapping `Controller` definitions onto routes.
 
 ## Purpose
 
