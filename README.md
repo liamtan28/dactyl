@@ -170,6 +170,8 @@ use a predefined `HttpException` (listed below):
 16. `ServiceUnavailableException`
 17. `GatewayTimeoutException`
 
+Doc: [HttpException.ts](https://doc.deno.land/https/deno.land/x/dactyl/HttpException.ts)
+
 ## Modules
 
 All modules are accessible without the example project by referring to them in your `deps.ts` file.
