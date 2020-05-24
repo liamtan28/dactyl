@@ -2,7 +2,7 @@
 
 import { Application as OakApplication, Response } from "./deps.ts";
 
-import { DactylRouter } from "./DactylRouter.ts";
+import { Router } from "./Router.ts";
 import { ApplicationConfig } from "./types.ts";
 
 /**
@@ -10,11 +10,11 @@ import { ApplicationConfig } from "./types.ts";
  * onto Router, and starting the Oak webserver
  */
 export class Application {
-  private router: DactylRouter;
+  private router: Router;
   private app: OakApplication;
 
   public constructor(appConfig: ApplicationConfig) {
-    this.router = new DactylRouter();
+    this.router = new Router();
     this.app = new OakApplication();
 
     for (const controller of appConfig.controllers) {

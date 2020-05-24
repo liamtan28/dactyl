@@ -1,7 +1,12 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
 import { EArgsType, ControllerMetadata } from "./types.ts";
-import { ensureController, getMeta, setMeta } from "./metadata.ts";
+import {
+  ensureController,
+  getMeta,
+  setMeta,
+  CONTROLLER_META_PROPKEY,
+} from "./metadata.ts";
 
 /**
  * Curried function responsible for generating parameter decorators
@@ -27,7 +32,7 @@ export function defineParameterDecorator(
 
     const meta: ControllerMetadata = getMeta(
       target.constructor,
-      "controllerMetadata"
+      CONTROLLER_META_PROPKEY
     );
 
     meta.args.push({
@@ -37,7 +42,7 @@ export function defineParameterDecorator(
       argFor: propertyKey,
     });
 
-    setMeta(target.constructor, "controllerMetaData", meta);
+    setMeta(target.constructor, CONTROLLER_META_PROPKEY, meta);
   };
 }
 

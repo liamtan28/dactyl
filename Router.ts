@@ -9,13 +9,12 @@ import {
 
 import { HttpException } from "./HttpException.ts";
 import { RouterContext } from "./deps.ts";
-import { getMeta } from "./metadata.ts";
+import { getMeta, CONTROLLER_META_PROPKEY } from "./metadata.ts";
 
-export class DactylRouter {
-  private router: OakRouter;
+export class Router extends OakRouter {
   public constructor() {
-    this.router = new OakRouter();
-    console.info("\nDactyl Framework - Authored by Liam Tan 2020");
+    super();
+    console.info("\nDactyl Framework");
     console.info("Building routes...\nRouting structure below:\n");
   }
   /**
@@ -26,7 +25,10 @@ export class DactylRouter {
   public register(controller: any): void {
     const instance: any = new controller();
 
-    const meta: ControllerMetadata = getMeta(controller, "controllerMetadata");
+    const meta: ControllerMetadata = getMeta(
+      controller,
+      CONTROLLER_META_PROPKEY
+    );
     if (!meta || !meta.prefix) {
       throw new Error(
         "Attempted to register non-controller class to DactylRouter"
@@ -40,8 +42,8 @@ export class DactylRouter {
       if (path.slice(-1) === "/") {
         path = path.slice(0, -1);
       }
-
-      this.router[route.requestMethod](
+      // Call routing function on OakRouter superclass
+      this[route.requestMethod](
         path,
         async (context: RouterContext): Promise<void> => {
           try {
@@ -186,7 +188,7 @@ export class DactylRouter {
    * where appropriate. Also maps the last route, which is the 404 no match route.
    */
   public middleware(): any {
-    return this.router.routes();
+    return this.routes();
   }
   /**
    * sendNoData method

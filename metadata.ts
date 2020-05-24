@@ -1,4 +1,7 @@
 import { ControllerMetadata, RouteDefinition } from "./types.ts";
+
+export const CONTROLLER_META_PROPKEY = "dactyl_controller_metadata";
+
 export const getMeta = (target: any, key: string) => {
   return Reflect.get(target, key);
 };
@@ -21,5 +24,5 @@ export const ensureController = (target: any) => {
     args: [],
     defaultResponseCodes: new Map<string, number>(),
   };
-  setMetaIfNotDefined(target, "controllerMetadata", meta);
+  setMetaIfNotDefined(target, CONTROLLER_META_PROPKEY, meta);
 };
