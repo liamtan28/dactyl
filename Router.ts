@@ -1,7 +1,7 @@
 import { Router as OakRouter } from "./deps.ts";
 import {
   RouteDefinition,
-  EHttpMethod,
+  HttpMethod,
   ArgsType,
   ControllerMetadata,
   RouteArgument,
@@ -46,7 +46,7 @@ export class Router extends OakRouter {
 
             const routeArgs: any[] = this.buildRouteArgumentsFromMeta(
               meta.args,
-              route.methodName,
+              route.methodName as string,
               params,
               body,
               query,
@@ -55,7 +55,7 @@ export class Router extends OakRouter {
             );
             // execute controller action here. Assume async. If not,
             // controller action will just be wrapped in Promise
-            const response: any = await instance[route.methodName](...routeArgs);
+            const response: any = await instance[route.methodName as string](...routeArgs);
 
             // In the example that the controller method returned no data, but
             // the response object was accessed directly and thus has finished
@@ -75,7 +75,7 @@ export class Router extends OakRouter {
             // and 200 for all others.
             const statusCode: number =
               meta.defaultResponseCodes.get(route.methodName) ||
-              (route.requestMethod == EHttpMethod.POST ? 201 : 200);
+              (route.requestMethod == HttpMethod.POST ? 201 : 200);
             // If we have reached the end of the control statement, the response
             // is ready to be sent. Specify the status code and respond to the
             // client with the response from the controller method.
