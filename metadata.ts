@@ -17,7 +17,7 @@ export const CONTROLLER_META_PROPKEY = "dactyl_controller_metadata";
 /**
  * Helper method for retrieving metadata of controller
  */
-export function getControllerMeta(target: object): ControllerMetadata | undefined {
+export function getControllerMeta(target: object): ControllerMetadata {
   return Reflect.get(target, CONTROLLER_META_PROPKEY);
 }
 /**

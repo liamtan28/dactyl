@@ -42,10 +42,7 @@ export class UnauthorizedException extends HttpException {
 }
 export class PaymentRequiredException extends HttpException {
   public constructor(msg?: string) {
-    super(
-      Status.PaymentRequired,
-      msg || STATUS_TEXT.get(Status.PaymentRequired)
-    );
+    super(Status.PaymentRequired, msg || STATUS_TEXT.get(Status.PaymentRequired));
   }
 }
 export class ForbiddenException extends HttpException {
@@ -60,10 +57,7 @@ export class NotFoundException extends HttpException {
 }
 export class MethodNotAllowedException extends HttpException {
   public constructor(msg?: string) {
-    super(
-      Status.MethodNotAllowed,
-      msg || STATUS_TEXT.get(Status.MethodNotAllowed)
-    );
+    super(Status.MethodNotAllowed, msg || STATUS_TEXT.get(Status.MethodNotAllowed));
   }
 }
 export class RequestTimeoutException extends HttpException {
@@ -73,10 +67,7 @@ export class RequestTimeoutException extends HttpException {
 }
 export class UnsupportedMediaTypeException extends HttpException {
   public constructor(msg?: string) {
-    super(
-      Status.UnsupportedMediaType,
-      msg || STATUS_TEXT.get(Status.UnsupportedMediaType)
-    );
+    super(Status.UnsupportedMediaType, msg || STATUS_TEXT.get(Status.UnsupportedMediaType));
   }
 }
 export class TeapotException extends HttpException {
@@ -86,18 +77,12 @@ export class TeapotException extends HttpException {
 }
 export class UnprocessableEntityException extends HttpException {
   public constructor(msg?: string) {
-    super(
-      Status.UnprocessableEntity,
-      msg || STATUS_TEXT.get(Status.UnprocessableEntity)
-    );
+    super(Status.UnprocessableEntity, msg || STATUS_TEXT.get(Status.UnprocessableEntity));
   }
 }
 export class TooManyRequestsException extends HttpException {
   public constructor(msg?: string) {
-    super(
-      Status.TooManyRequests,
-      msg || STATUS_TEXT.get(Status.TooManyRequests)
-    );
+    super(Status.TooManyRequests, msg || STATUS_TEXT.get(Status.TooManyRequests));
   }
 }
 export class RequestHeaderFieldsTooLargeException extends HttpException {
@@ -110,10 +95,7 @@ export class RequestHeaderFieldsTooLargeException extends HttpException {
 }
 export class InternalServerErrorException extends HttpException {
   public constructor(msg?: string) {
-    super(
-      Status.InternalServerError,
-      msg || STATUS_TEXT.get(Status.InternalServerError)
-    );
+    super(Status.InternalServerError, msg || STATUS_TEXT.get(Status.InternalServerError));
   }
 }
 export class NotImplementedException extends HttpException {
@@ -128,10 +110,7 @@ export class BadGatewayException extends HttpException {
 }
 export class ServiceUnavailableException extends HttpException {
   public constructor(msg?: string) {
-    super(
-      Status.ServiceUnavailable,
-      msg || STATUS_TEXT.get(Status.ServiceUnavailable)
-    );
+    super(Status.ServiceUnavailable, msg || STATUS_TEXT.get(Status.ServiceUnavailable));
   }
 }
 export class GatewayTimeoutException extends HttpException {

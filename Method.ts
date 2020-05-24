@@ -1,16 +1,13 @@
 import { EHttpMethod, ControllerMetadata } from "./types.ts";
-import {
-  getControllerMeta,
-  ensureController,
-  setControllerMeta,
-} from "./metadata.ts";
+import { getControllerMeta, ensureController, setControllerMeta } from "./metadata.ts";
 /**
  * Responsible for producing function decorators for all given HttpMethods.
  * Uses a curried function to return the function decorator.
  */
-const defineRouteDecorator = (requestMethod: EHttpMethod) => (
-  path: string
-): any => (target: any, propertyKey: string): void => {
+const defineRouteDecorator = (requestMethod: EHttpMethod) => (path: string): any => (
+  target: any,
+  propertyKey: string
+): void => {
   // You can't ensure order of function decorators,
   // so ensure constructor has boilerplate metadata
   // before execution.

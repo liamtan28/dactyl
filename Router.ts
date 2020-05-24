@@ -27,9 +27,7 @@ export class Router extends OakRouter {
 
     const meta: ControllerMetadata = getControllerMeta(controller);
     if (!meta || !meta.prefix) {
-      throw new Error(
-        "Attempted to register non-controller class to DactylRouter"
-      );
+      throw new Error("Attempted to register non-controller class to DactylRouter");
     }
     console.info(`  ${meta.prefix}`);
     meta.routes.forEach((route: RouteDefinition): void => {
@@ -44,12 +42,7 @@ export class Router extends OakRouter {
         path,
         async (context: RouterContext): Promise<void> => {
           try {
-            const [
-              params,
-              headers,
-              query,
-              body,
-            ] = await this.retrieveFromContext(context);
+            const [params, headers, query, body] = await this.retrieveFromContext(context);
 
             const routeArgs: any[] = this.buildRouteArgumentsFromMeta(
               meta.args,
@@ -62,9 +55,7 @@ export class Router extends OakRouter {
             );
             // execute controller action here. Assume async. If not,
             // controller action will just be wrapped in Promise
-            const response: any = await instance[route.methodName](
-              ...routeArgs
-            );
+            const response: any = await instance[route.methodName](...routeArgs);
 
             // In the example that the controller method returned no data, but
             // the response object was accessed directly and thus has finished
@@ -132,12 +123,7 @@ export class Router extends OakRouter {
     const bodyFromContext: any = await context.request.body();
     // Map ParamDefinitions onto the actual params
     // from route
-    return [
-      paramsFromContext,
-      headersFromContext,
-      queryFromContext,
-      bodyFromContext,
-    ];
+    return [paramsFromContext, headersFromContext, queryFromContext, bodyFromContext];
   }
   private buildRouteArgumentsFromMeta(
     args: RouteArgument[],
@@ -153,9 +139,7 @@ export class Router extends OakRouter {
       (arg: RouteArgument) => arg.argFor === methodName
     );
     // Sort params by index to ensure order
-    filteredArguments.sort(
-      (a: RouteArgument, b: RouteArgument) => a.index - b.index
-    );
+    filteredArguments.sort((a: RouteArgument, b: RouteArgument) => a.index - b.index);
 
     return filteredArguments.map((arg: RouteArgument): any => {
       switch (arg.type) {
@@ -198,9 +182,7 @@ export class Router extends OakRouter {
     // Warn the user here that no data has been returned from the controller method.
     // It is important to do so as this is likely a mistake.
     console.warn(
-      ` * Warning - Method returned no response: ${
-        controller.toString().split(" ")[1]
-      }\n`,
+      ` * Warning - Method returned no response: ${controller.toString().split(" ")[1]}\n`,
       `* Route:                                 ${
         Reflect.get(controller, "prefix") + route.path
       }\n`,
@@ -215,20 +197,12 @@ export class Router extends OakRouter {
    * raised. This could be caused by an unhandled promise rejection, or a custom error
    * thrown either internally or from an external module.
    */
-  private handleUnknownException(
-    route: RouteDefinition,
-    controller: any,
-    res: any
-  ): void {
+  private handleUnknownException(route: RouteDefinition, controller: any, res: any): void {
     // Notify the user of the error, including all metadata associated with the
     // request.
     console.error(
-      ` * Error - Unknown exception thrown: ${
-        controller.toString().split(" ")[1]
-      }\n`,
-      `* Route:                    ${
-        Reflect.get(controller, "prefix") + route.path
-      }\n`,
+      ` * Error - Unknown exception thrown: ${controller.toString().split(" ")[1]}\n`,
+      `* Route:                    ${Reflect.get(controller, "prefix") + route.path}\n`,
       `* Controller method name:   ${route.methodName}\n`,
       `* HTTP method type:         ${route.requestMethod}\n`
     );

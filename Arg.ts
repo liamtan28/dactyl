@@ -1,11 +1,7 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
 import { EArgsType, ControllerMetadata } from "./types.ts";
-import {
-  ensureController,
-  getControllerMeta,
-  setControllerMeta,
-} from "./metadata.ts";
+import { ensureController, getControllerMeta, setControllerMeta } from "./metadata.ts";
 
 /**
  * Curried function responsible for generating parameter decorators
@@ -16,15 +12,9 @@ export function defineParameterDecorator(
   paramKeyRequired?: boolean | undefined,
   paramKey?: string
 ): ParameterDecorator {
-  return (
-    target: any,
-    propertyKey: string | Symbol,
-    parameterIndex: number
-  ): void => {
+  return (target: any, propertyKey: string | Symbol, parameterIndex: number): void => {
     if (paramKeyRequired && !paramKey) {
-      throw new Error(
-        `${propertyKey} decorated with ${argType} requires a paramter argument`
-      );
+      throw new Error(`${propertyKey} decorated with ${argType} requires a paramter argument`);
     }
 
     ensureController(target.constructor);

@@ -1,10 +1,6 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
-import {
-  ensureController,
-  getControllerMeta,
-  setControllerMeta,
-} from "./metadata.ts";
+import { ensureController, getControllerMeta, setControllerMeta } from "./metadata.ts";
 
 import { ControllerMetadata } from "./types.ts";
 import { Status } from "./deps.ts";
