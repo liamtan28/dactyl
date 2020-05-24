@@ -1,6 +1,6 @@
 # Dactyl 🦇
 
-[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/dactyl/mod.ts)
+[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/dactyl)
 
 ### Web framework for Deno, built on top of Oak
 
@@ -29,7 +29,7 @@ Deno is the new kid on the block, and Oak seems to be paving the way for an expr
 
 This repo contains an example project with one controller. You can execute this on your machine easily with Deno:
 
-`deno run --allow-net --config=tsconfig.json https://raw.githubusercontent.com/liamtan28/dactyl/master/example/index.ts`
+`deno run --allow-net --config=tsconfig.json https://deno.land/x/dactyl/example/index.ts`
 
 One caveat is to ensure you have a `tsconfig.json` file enabling `Reflect` and function decorators for this project, as Deno does not support this in it's default config. Ensure a `tsconfig.json` exists in your directory with at minimum:
 
@@ -157,7 +157,7 @@ export {
   Controller,
   DactylRouter,
   Get,
-} from "https://raw.githubusercontent.com/liamtan28/dactyl/master/mod.ts";
+} from "https://deno.land/x/dactyl/mod.ts";
 ```
 
 **In the works**
