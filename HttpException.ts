@@ -1,4 +1,4 @@
-import { EHttpStatus } from "./model.ts";
+import { EHttpStatus } from "./types.ts";
 
 export class HttpException {
   private error: string;

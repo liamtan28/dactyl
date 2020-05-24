@@ -1,6 +1,6 @@
 import { Application as OakApplication } from "./deps.ts";
 import { DactylRouter } from "./DactylRouter.ts";
-import { ApplicationConfig } from "./model.ts";
+import { ApplicationConfig } from "./types.ts";
 export class Application {
   private router: DactylRouter;
   private app: OakApplication;
