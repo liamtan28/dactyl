@@ -1,6 +1,11 @@
-import { Application as OakApplication } from "./deps.ts";
+import {
+  Application as OakApplication,
+  RouterContext,
+  Response,
+} from "./deps.ts";
 import { DactylRouter } from "./DactylRouter.ts";
 import { ApplicationConfig } from "./types.ts";
+
 export class Application {
   private router: DactylRouter;
   private app: OakApplication;
@@ -13,6 +18,16 @@ export class Application {
       this.router.register(controller);
     }
     this.app.use(this.router.middleware());
+    this.app.use((context: any) => this.notFoundHandler(context));
+  }
+
+  public notFoundHandler(context: RouterContext): void {
+    const response: Response = context.response;
+    response.status = 404;
+    response.body = {
+      error: "Not Found",
+      status: 404,
+    };
   }
 
   public async run(port: number) {

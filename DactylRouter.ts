@@ -186,23 +186,7 @@ export class DactylRouter {
    * where appropriate. Also maps the last route, which is the 404 no match route.
    */
   public middleware(): any {
-    // TODO fix this
-    //this.router.use(this.notFoundHandler);
     return this.router.routes();
-  }
-  /**
-   * not found handler. Will be called when no route matches. Simply
-   * raises a 404 and sends it to the user.
-   */
-  private notFoundHandler(context: any): void {
-    const res = context.response;
-    res.status = 404;
-    res.body = {
-      error: "Not Found",
-      status: 404,
-    };
-    // No need for NextFunction here as uncaught errors are dealt
-    // with in the register function above.
   }
   /**
    * sendNoData method
