@@ -1,7 +1,3 @@
-export enum EHttpStatus {
-  OK = 200,
-  BAD_REQUEST = 400,
-}
 export enum EHttpMethod {
   GET = "get",
   POST = "post",

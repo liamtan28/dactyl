@@ -12,7 +12,7 @@ import {
   Request,
   Response,
   HttpStatus,
-  HttpException,
+  BadRequestException,
   RouterContext,
   OakRequest,
   OakResponse,
@@ -52,7 +52,7 @@ class DinosaurController {
   @Post("/")
   createDinosaur(@Body("name") name: any) {
     if (!name) {
-      throw new HttpException("name is a required field", 400);
+      throw new BadRequestException("name is a required field");
     }
     return {
       message: `Created dinosaur with name ${name}`,

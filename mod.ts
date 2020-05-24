@@ -13,3 +13,5 @@ export {
   Request,
   Response,
 } from "./Arg.ts";
+
+export * from "./HttpException.ts";

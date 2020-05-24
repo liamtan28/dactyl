@@ -8,7 +8,7 @@ import {
 } from "./types.ts";
 
 import { HttpException } from "./HttpException.ts";
-import { RouterContext } from "./deps.ts";
+import { RouterContext, Status } from "./deps.ts";
 import { getMeta, CONTROLLER_META_PROPKEY } from "./metadata.ts";
 
 export class Router extends OakRouter {
@@ -98,8 +98,8 @@ export class Router extends OakRouter {
             // if not of HttpException type
             if (error instanceof HttpException) {
               const response: {
-                error: string;
-                status: number;
+                error: string | undefined;
+                status: Status;
               } = error.getError();
               context.response.status = response.status;
               context.response.body = response;

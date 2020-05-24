@@ -16,6 +16,7 @@ export {
   Response,
   HttpStatus,
   HttpException,
+  BadRequestException,
   Application,
 } from "../mod.ts";
 

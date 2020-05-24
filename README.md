@@ -10,7 +10,7 @@ Currently, through `mod.ts`, you have access to:
 
 1. `Controller` - function decorator responsible for assigning controller metadata
 2. `Application` - application class able to register controllers, and start the webserver
-3. `HttpException` - throwable exception inside controller actions, `DactylRouter` will then handle said errors at top level and send the appropriate HTTP status code and message.
+3. `HttpException` - throwable exception inside controller actions, `Application` will then handle said errors at top level and send the appropriate HTTP status code and message. There is also a list of included predefined `HttpException` classes, see below.
 4. `HttpStatus` - function decorator responsible for assigning default status codes for controller actions
 5. `Get, Post, Put, Patch, Delete` - currently supported function decorators responsible for defining routes on controller actions
 6. `Param` - maps `context.params` onto argument in controller action
@@ -146,6 +146,31 @@ await app.run(8000);
 ```
 
 And away we go. This spins up a web server using oak with the appropriately registered routes based on your controller definitions.
+
+## Exceptions
+
+Exceptions can be raised at any time in the request lifecycle. `HttpException` allows you to raise a custom exception, or you can
+use a predefined `HttpException` (listed below):
+
+```
+  BadRequestException
+  UnauthorizedException
+  PaymentRequiredException
+  ForbiddenException
+  NotFoundException
+  MethodNotAllowedException
+  RequestTimeoutException
+  UnsupportedMediaTypeException
+  TeapotException
+  UnprocessableEntityException
+  TooManyRequestsException
+  RequestHeaderFieldsTooLargeException
+  InternalServerErrorException
+  NotImplementedException
+  BadGatewayException
+  ServiceUnavailableException
+  GatewayTimeoutException
+```
 
 ## Modules
 
