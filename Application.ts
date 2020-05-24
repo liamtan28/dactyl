@@ -16,6 +16,9 @@ export class Application {
   }
 
   public async run(port: number) {
+    console.info(
+      `Dactyl bootstrapped - please visit http://localhost:${port}/`
+    );
     this.app.listen({ port });
   }
 }
