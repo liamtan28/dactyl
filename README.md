@@ -31,11 +31,11 @@ This repo contains an example project with one controller. You can execute this 
 
 One caveat is to ensure you have a `tsconfig.json` file enabling `Reflect` and function decorators for this project, as Deno does not support this in it's default config. Ensure a `tsconfig.json` exists in your directory with at minimum:
 
-```
+```json
 {
-  "compilerOptions":  {
-	"experimentalDecorators":  true,
-	"emitDecoratorMetadata":  true
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   }
 }
 ```
@@ -52,8 +52,9 @@ Routing structure below:
      [GET] /:id
      [POST] /
      [PUT] /:id
+     [DELETE] /:id
 
-Dactyl Example bootstrapped - please visit http://localhost:8000/
+Dactyl bootstrapped - please visit http://localhost:8000/
 ```
 
 You can now visit your API.
@@ -65,26 +66,21 @@ In the above example project, there exists one `Controller` and a bootstrapping 
 `DinosaurController.ts`
 Controllers are declared with function decorators. This stores metadata that is consumed on bootstrap and converted into route definitions that Oak can understand.
 
-```
-import {
-  // ...
-} from "./deps.ts";
-
+```ts
 @Controller("/dinosaur")
 class DinosaurController {
   @Get("/")
   @HttpStatus(200)
-  getDinosaurs(@Query('orderBy') orderBy: any, @Query('sort') sort: any) {
-
+  getDinosaurs(@Query("orderBy") orderBy: any, @Query("sort") sort: any) {
     const dinosaurs: any[] = [
-      { name: 'Tyrannosaurus Rex', period: 'Maastrichtian'},
-      { name: 'Velociraptor', period: 'Cretaceous' },
-      { name: 'Diplodocus', period: 'Oxfordian' }
+      { name: "Tyrannosaurus Rex", period: "Maastrichtian" },
+      { name: "Velociraptor", period: "Cretaceous" },
+      { name: "Diplodocus", period: "Oxfordian" },
     ];
 
-    if(orderBy) {
-      dinosaurs.sort((a: any, b: any) => a[orderBy] < b[orderBy] ? -1 : 1);
-      if (sort === 'desc') dinosaurs.reverse();
+    if (orderBy) {
+      dinosaurs.sort((a: any, b: any) => (a[orderBy] < b[orderBy] ? -1 : 1));
+      if (sort === "desc") dinosaurs.reverse();
     }
 
     return {
@@ -93,14 +89,17 @@ class DinosaurController {
     };
   }
   @Get("/:id")
-  getDinosaurById(@Param('id') id: any, @Header('content-type') contentType: any) {
+  getDinosaurById(
+    @Param("id") id: any,
+    @Header("content-type") contentType: any
+  ) {
     return {
       message: `Action returning one dinosaur with id ${id}`,
       ContentType: contentType,
     };
   }
   @Post("/")
-  async createDinosaur(@Body('name') name: any) {
+  async createDinosaur(@Body("name") name: any) {
     if (!name) {
       throw new HttpException("name is a required field", 400);
     }
@@ -109,9 +108,19 @@ class DinosaurController {
     };
   }
   @Put("/:id")
-  async updateDinosaur(@Param('id') id: any, @Body('name') name: any) {
+  async updateDinosaur(@Param("id") id: any, @Body("name") name: any) {
     return {
       message: `Updated name of dinosaur with id ${id} to ${name}`,
+    };
+  }
+  @Delete("/:id")
+  deleteDinosaur(
+    @Context() ctx: RouterContext,
+    @Request() req: OakRequest,
+    @Response() res: OakResponse
+  ) {
+    return {
+      message: `Deleted dinosaur with id ${ctx.params.id}`,
     };
   }
 }
@@ -122,7 +131,7 @@ export default DinosaurController;
 `index.ts`
 This file bootstraps the web server by registering `DinosaurController` to the `Application` instance. `Application` can then use the `.run()` async method to start the webserver.
 
-```
+```ts
 import { Application } from "./deps.ts";
 
 import DinosaurController from "./DinosaurController.ts";
@@ -132,7 +141,6 @@ const app: Application = new Application({
 });
 
 await app.run(8000);
-
 ```
 
 And away we go. This spins up a web server using oak with the appropriately registered routes based on your controller definitions.
@@ -142,8 +150,7 @@ And away we go. This spins up a web server using oak with the appropriately regi
 All modules are accessible without the example project by referring to them in your `deps.ts` file.
 E.g.
 
-```
-// deps.ts
+```ts
 export {
   Controller,
   DactylRouter,
