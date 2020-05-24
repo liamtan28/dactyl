@@ -1,4 +1,4 @@
-import { ControllerMetadata, RouteDefinition } from "./model.ts";
+import { ControllerMetadata, RouteDefinition } from "./types.ts";
 import { setMetaIfNotDefined, getMeta, setMeta } from "./metadata.ts";
 /**
  * Controller Class decorator responsible for initialising metadata on the controller class.

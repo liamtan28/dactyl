@@ -1,4 +1,4 @@
-import { ControllerMetadata, RouteDefinition } from "./model.ts";
+import { ControllerMetadata, RouteDefinition } from "./types.ts";
 export const getMeta = (target: any, key: string) => {
   return Reflect.get(target, key);
 };
@@ -8,7 +8,7 @@ export const setMeta = (target: any, key: string, value: any) => {
 export const setMetaIfNotDefined = (
   target: any,
   key: string,
-  value: any,
+  value: any
 ): void => {
   if (!Reflect.has(target, key)) {
     setMeta(target, key, value);

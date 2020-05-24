@@ -15,6 +15,9 @@ Currently, through `mod.ts`, you have access to:
 7. `Body` - maps `context.request` async body onto argument in controller action
 8. `Query` - maps `context.url.searchParams` onto argument in controller action
 9. `Header` - maps `context.headers` onto argument in controller action
+10. `Context` - return whole Oak `RouterContext` object
+11. `Request` - return whole Oak `Request` object
+12. `Response` - return whole Oak `Response` object
 
 ## Purpose
 
@@ -149,6 +152,7 @@ export {
 ```
 
 **In the works**
+
 1. `@Injectable` - DI implementation for controllers, allowing injectible services
 2. `@Before, @BeforeAll` - decorators for controller and controller actions for pre-request actions like validation
 3. CLI tool for boilerplate generation and file structure

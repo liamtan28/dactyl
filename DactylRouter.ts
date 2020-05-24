@@ -5,7 +5,8 @@ import {
   EArgsType,
   ControllerMetadata,
   RouteArgument,
-} from "./model.ts";
+} from "./types.ts";
+
 import { HttpException } from "./HttpException.ts";
 import { RouterContext } from "./deps.ts";
 import { getMeta } from "./metadata.ts";
@@ -25,22 +26,15 @@ export class DactylRouter {
   public register(controller: any): void {
     const instance: any = new controller();
 
-    const meta: ControllerMetadata = getMeta(
-      controller,
-      "controllerMetadata",
-    );
+    const meta: ControllerMetadata = getMeta(controller, "controllerMetadata");
     if (!meta || !meta.prefix) {
       throw new Error(
-        "Attempted to register non-controller class to DactylRouter",
+        "Attempted to register non-controller class to DactylRouter"
       );
     }
-    console.info(
-      `  ${meta.prefix}`,
-    );
+    console.info(`  ${meta.prefix}`);
     meta.routes.forEach((route: RouteDefinition): void => {
-      console.info(
-        `     [${route.requestMethod.toUpperCase()}] ${route.path}`,
-      );
+      console.info(`     [${route.requestMethod.toUpperCase()}] ${route.path}`);
 
       let path: string = meta.prefix + route.path;
       if (path.slice(-1) === "/") {
@@ -65,11 +59,12 @@ export class DactylRouter {
               body,
               query,
               headers,
+              context
             );
             // execute controller action here. Assume async. If not,
             // controller action will just be wrapped in Promise
             const response: any = await instance[route.methodName](
-              ...routeArgs,
+              ...routeArgs
             );
 
             // In the example that the controller method returned no data, but
@@ -111,7 +106,7 @@ export class DactylRouter {
               this.handleUnknownException(route, controller, context.response);
             }
           }
-        },
+        }
       );
     });
     console.info("");
@@ -119,6 +114,7 @@ export class DactylRouter {
   private async retrieveFromContext(context: RouterContext) {
     const url: URL = context.request.url;
     const headersRaw: Headers = context.request.headers;
+
     const paramsFromContext: any = context.params;
 
     const headersFromContext: any = {};
@@ -151,19 +147,18 @@ export class DactylRouter {
     body: any,
     query: any,
     headers: any,
+    context: RouterContext
   ): any[] {
     // Filter out args for this specific controller action
-    const filteredArguments: RouteArgument[] = args.filter((
-      arg: RouteArgument,
-    ) => arg.argFor === methodName);
+    const filteredArguments: RouteArgument[] = args.filter(
+      (arg: RouteArgument) => arg.argFor === methodName
+    );
     // Sort params by index to ensure order
-    filteredArguments.sort((a: RouteArgument, b: RouteArgument) =>
-      a.index - b.index
+    filteredArguments.sort(
+      (a: RouteArgument, b: RouteArgument) => a.index - b.index
     );
 
-    return filteredArguments.map((
-      arg: RouteArgument,
-    ): any => {
+    return filteredArguments.map((arg: RouteArgument): any => {
       switch (arg.type) {
         case EArgsType.PARAM:
           return params[arg.key];
@@ -173,6 +168,12 @@ export class DactylRouter {
           return query[arg.key];
         case EArgsType.HEADER:
           return headers[arg.key];
+        case EArgsType.CONTEXT:
+          return context;
+        case EArgsType.REQUEST:
+          return context.request;
+        case EArgsType.RESPONSE:
+          return context.response;
         default:
           // TODO probably bad way here, but should
           // get 500 if weird argsdefinition
@@ -185,23 +186,7 @@ export class DactylRouter {
    * where appropriate. Also maps the last route, which is the 404 no match route.
    */
   public middleware(): any {
-    // TODO fix this
-    //this.router.use(this.notFoundHandler);
     return this.router.routes();
-  }
-  /**
-   * not found handler. Will be called when no route matches. Simply
-   * raises a 404 and sends it to the user.
-   */
-  private notFoundHandler(context: any): void {
-    const res = context.response;
-    res.status = 404;
-    res.body = {
-      error: "Not Found",
-      status: 404,
-    };
-    // No need for NextFunction here as uncaught errors are dealt
-    // with in the register function above.
   }
   /**
    * sendNoData method
@@ -217,12 +202,11 @@ export class DactylRouter {
       ` * Warning - Method returned no response: ${
         controller.toString().split(" ")[1]
       }\n`,
-      `* Route:                                 ${Reflect.get(
-        controller,
-        "prefix",
-      ) + route.path}\n`,
+      `* Route:                                 ${
+        Reflect.get(controller, "prefix") + route.path
+      }\n`,
       `* Controller method name:                ${route.methodName}\n`,
-      `* HTTP method type:                      ${route.requestMethod}\n`,
+      `* HTTP method type:                      ${route.requestMethod}\n`
     );
     // Send 204 No Content.
     res.status = 204;
@@ -235,7 +219,7 @@ export class DactylRouter {
   private handleUnknownException(
     route: RouteDefinition,
     controller: any,
-    res: any,
+    res: any
   ): void {
     // Notify the user of the error, including all metadata associated with the
     // request.
@@ -243,10 +227,11 @@ export class DactylRouter {
       ` * Error - Unknown exception thrown: ${
         controller.toString().split(" ")[1]
       }\n`,
-      `* Route:                    ${Reflect.get(controller, "prefix") +
-        route.path}\n`,
+      `* Route:                    ${
+        Reflect.get(controller, "prefix") + route.path
+      }\n`,
       `* Controller method name:   ${route.methodName}\n`,
-      `* HTTP method type:         ${route.requestMethod}\n`,
+      `* HTTP method type:         ${route.requestMethod}\n`
     );
     // Return a 500 error to the user.
     res.status = 500;
