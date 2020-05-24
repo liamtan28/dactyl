@@ -38,7 +38,7 @@ export interface RouteArgument {
   type: EArgsType;
   index: number;
   key: string;
-  argFor: string;
+  argFor: string | Symbol;
 }
 export interface ApplicationConfig {
   controllers: any[];

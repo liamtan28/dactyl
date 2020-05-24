@@ -4,7 +4,7 @@ import { setMetaIfNotDefined, getMeta, setMeta } from "./metadata.ts";
  * Controller Class decorator responsible for initialising metadata on the controller class.
  * Defines the prefix to route all subsequent paths declared on the controller methods
  */
-export const Controller = (prefix: string = ""): ClassDecorator => {
+export function Controller = (prefix: string = ""): ClassDecorator => {
   return (target: any) => {
     setMetaIfNotDefined(target, "controllerMetadata", {
       prefix,

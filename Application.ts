@@ -1,19 +1,15 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
-import {
-  Application as OakApplication,
-  RouterContext,
-  Response,
-} from "./deps.ts";
+import { Application as OakApplication, Response } from "./deps.ts";
 
 import { DactylRouter } from "./DactylRouter.ts";
 import { ApplicationConfig } from "./types.ts";
 
+/**
+ * Bootstrap class responsible for registering controllers
+ * onto Router, and starting the Oak webserver
+ */
 export class Application {
-  /**
-   * Bootstrap class responsible for registering controllers
-   * onto Router, and starting the Oak webserver
-   */
   private router: DactylRouter;
   private app: OakApplication;
 
@@ -37,16 +33,15 @@ export class Application {
       };
     });
   }
+  /**
+   * Function responsible for begin listen of oak webserver.
+   * Console notified when webserver begins.
+   *
+   * The webserver will start on port `port` as provided as
+   * an argument.
+   */
   public async run(port: number): Promise<void> {
-    /**
-     * Function responsible for begin listen of oak webserver.
-     *
-     * The webserver will start on port `port` as provided as
-     * an argument.
-     */
-    console.info(
-      `Dactyl bootstrapped - please visit http://localhost:${port}/`
-    );
+    console.info(`Dactyl running - please visit http://localhost:${port}/`);
     this.app.listen({ port });
   }
 }
