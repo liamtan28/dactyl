@@ -1,5 +1,7 @@
 # Dactyl
 
+[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/dactyl/mod.ts)
+
 ### Web framework for Deno, built on top of Oak
 
 ## TL:DR; Available modules:
