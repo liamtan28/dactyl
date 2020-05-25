@@ -51,7 +51,7 @@ One caveat is to ensure you have a `tsconfig.json` file enabling `Reflect` and f
 This should result in the following output:
 
 ```
-______           _         _
+_____           _         _
 |  _  \         | |       | |
 | | | |__ _  ___| |_ _   _| |
 | | | / _` |/ __| __| | | | |
