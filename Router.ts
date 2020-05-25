@@ -8,11 +8,12 @@ import {
   ArgsType,
   ControllerMetadata,
   RouteArgument,
+  Newable,
 } from "./types.ts";
 
 import { HttpException } from "./HttpException.ts";
 import { RouterContext, Status, STATUS_TEXT } from "./deps.ts";
-import { getControllerMeta } from "./metadata.ts";
+import { getControllerOwnMeta, defaultMetadata } from "./metadata.ts";
 
 /**
  * Router subclass - abstraction on top of `Router` class from Oak.
@@ -51,10 +52,10 @@ ______           _         _
    * // router superclass now configured to use DinosaurController's actions
    * ```
    */
-  public register(controller: any): void {
+  public register(controller: Newable<any>): void {
     const instance: any = new controller();
 
-    const meta: ControllerMetadata = getControllerMeta(controller);
+    const meta: ControllerMetadata | undefined = getControllerOwnMeta(controller);
     if (!meta || !meta.prefix) {
       throw new Error("Attempted to register non-controller class to DactylRouter");
     }

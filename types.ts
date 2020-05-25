@@ -59,6 +59,13 @@ export interface RouteArgument {
 /**
  * Root config for the `Application` class.
  */
+
 export interface ApplicationConfig {
-  controllers: any[];
+  controllers: Array<Newable<any>>;
+}
+/**
+ * Definition for a class.
+ */
+export interface Newable<T> {
+  new (...args: any[]): T;
 }

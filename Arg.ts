@@ -1,7 +1,7 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
 import { ArgsType, ControllerMetadata } from "./types.ts";
-import { ensureController, getControllerMeta, setControllerMeta } from "./metadata.ts";
+import { setControllerMeta, getControllerMeta, defaultMetadata } from "./metadata.ts";
 
 /**
  * Curried function responsible for generating parameter decorators
@@ -20,9 +20,7 @@ const defineParameterDecorator = (
     throw new Error(`${propertyKey} decorated with ${argType} requires a paramter argument`);
   }
 
-  ensureController(target.constructor);
-
-  const meta: ControllerMetadata = getControllerMeta(target.constructor);
+  const meta: ControllerMetadata = getControllerMeta(target) ?? defaultMetadata();
 
   meta.args.push({
     type: argType,
@@ -31,7 +29,7 @@ const defineParameterDecorator = (
     argFor: propertyKey,
   });
 
-  setControllerMeta(target.constructor, meta);
+  setControllerMeta(target, meta);
 };
 
 /**

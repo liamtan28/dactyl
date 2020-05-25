@@ -1,7 +1,7 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
 import { HttpMethod, ControllerMetadata } from "./types.ts";
-import { getControllerMeta, ensureController, setControllerMeta } from "./metadata.ts";
+import { getControllerMeta, defaultMetadata, setControllerMeta } from "./metadata.ts";
 /**
  * Responsible for producing function decorators for all given HttpMethods.
  * Uses a curried function to return the function decorator.
@@ -10,9 +10,7 @@ const defineRouteDecorator = (path: string = "/", requestMethod: HttpMethod): Me
   target: any,
   propertyKey: string | Symbol
 ): void => {
-  ensureController(target.constructor);
-
-  const meta: ControllerMetadata = getControllerMeta(target.constructor);
+  const meta: ControllerMetadata = getControllerMeta(target) ?? defaultMetadata();
 
   meta.routes.set(propertyKey, {
     requestMethod,
@@ -20,7 +18,7 @@ const defineRouteDecorator = (path: string = "/", requestMethod: HttpMethod): Me
     methodName: propertyKey,
   });
 
-  setControllerMeta(target.constructor, meta);
+  setControllerMeta(target, meta);
 };
 
 /**
