@@ -1,7 +1,11 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
 import { ArgsType, ControllerMetadata } from "./types.ts";
-import { setControllerMeta, getControllerMeta, defaultMetadata } from "./metadata.ts";
+import {
+  setControllerMeta,
+  getControllerMeta,
+  defaultMetadata,
+} from "./metadata.ts";
 
 /**
  * Curried function responsible for generating parameter decorators
@@ -10,27 +14,30 @@ import { setControllerMeta, getControllerMeta, defaultMetadata } from "./metadat
 const defineParameterDecorator = (
   argType: ArgsType,
   paramKeyRequired?: boolean | undefined,
-  paramKey?: string
-): ParameterDecorator => (
-  target: any,
-  propertyKey: string | Symbol,
-  parameterIndex: number
-): void => {
-  if (paramKeyRequired && !paramKey) {
-    throw new Error(`${propertyKey} decorated with ${argType} requires a paramter argument`);
-  }
+  paramKey?: string,
+): ParameterDecorator =>
+  (
+    target: Object,
+    propertyKey: string | Symbol,
+    parameterIndex: number,
+  ): void => {
+    if (paramKeyRequired && !paramKey) {
+      throw new Error(
+        `${propertyKey} decorated with ${argType} requires a paramter argument`,
+      );
+    }
+    const meta: ControllerMetadata = getControllerMeta(target) ??
+      defaultMetadata();
 
-  const meta: ControllerMetadata = getControllerMeta(target) ?? defaultMetadata();
+    meta.args.push({
+      type: argType,
+      key: paramKey || "",
+      index: parameterIndex,
+      argFor: propertyKey,
+    });
 
-  meta.args.push({
-    type: argType,
-    key: paramKey || "",
-    index: parameterIndex,
-    argFor: propertyKey,
-  });
-
-  setControllerMeta(target, meta);
-};
+    setControllerMeta(target, meta);
+  };
 
 /**
  * Parameter decorator - maps `context.params` onto controller actions

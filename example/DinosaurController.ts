@@ -28,7 +28,7 @@ class DinosaurController {
   @Doc({
     description: "Gets all dinosaurs, and allows sorting and ordering",
   })
-  getDinosaurs(@Query("orderBy") orderBy: any, @Query("sort") sort: any) {
+  getDinosaurs(@Query("orderBy") orderBy: string, @Query("sort") sort: string) {
     const dinosaurs: any[] = [
       { name: "Tyrannosaurus Rex", period: "Maastrichtian" },
       { name: "Velociraptor", period: "Cretaceous" },
@@ -46,7 +46,7 @@ class DinosaurController {
     };
   }
   @Get("/:id")
-  getDinosaurById(@Param("id") id: any, @Header("content-type") contentType: any) {
+  getDinosaurById(@Param("id") id: number, @Header("content-type") contentType: string) {
     return {
       message: `Action returning one dinosaur with id ${id}`,
       ContentType: contentType,
@@ -57,7 +57,7 @@ class DinosaurController {
   @Doc({
     description: "Create a new dinosaur",
   })
-  createDinosaur(@Body("name") name: any) {
+  createDinosaur(@Body("name") name: string) {
     if (!name) {
       throw new BadRequestException("name is a required field");
     }
@@ -66,7 +66,7 @@ class DinosaurController {
     };
   }
   @Put("/:id")
-  updateDinosaur(@Param("id") id: any, @Body("name") name: any) {
+  updateDinosaur(@Param("id") id: number, @Body("name") name: string) {
     return {
       message: `Updated name of dinosaur with id ${id} to ${name}`,
     };

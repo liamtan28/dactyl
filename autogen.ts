@@ -8,6 +8,7 @@ import {
   DocDefinition,
   HttpMethod,
   RouteArgument,
+  ArgsType,
 } from "./types.ts";
 
 import { getControllerOwnMeta } from "./metadata.ts";
@@ -97,7 +98,7 @@ export class OasAutogenBuilder {
       // Skip non controller Newables as they do not offer any routes
       if (!meta || !meta.prefix) continue;
 
-      const { prefix, routes, docs, defaultResponseCodes, args }:
+      const { prefix, routes, docs, defaultResponseCodes, args, argTypes }:
         ControllerMetadata = meta;
 
       for (const [, routeDef] of routes.entries()) {
@@ -112,8 +113,22 @@ export class OasAutogenBuilder {
           (routeDef.requestMethod === HttpMethod.POST ? 201 : 200);
 
         const filteredArgs: Array<RouteArgument> = args.filter(
-          (arg: RouteArgument): boolean => arg.argFor === routeDef.methodName,
+          (arg: RouteArgument): boolean =>
+            arg.argFor === routeDef.methodName &&
+            arg.type != ArgsType.BODY && arg.type != ArgsType.CONTEXT &&
+            arg.type != ArgsType.REQUEST && arg.type != ArgsType.RESPONSE,
+        ).map((arg: RouteArgument): any =>
+          arg.type == ArgsType.PARAM
+            ? {
+              ...arg,
+              type: "path",
+            }
+            : arg
         );
+
+        const filteredArgTypes: Array<string> =
+          argTypes.get(routeDef.methodName as string) ?? [];
+
         // TODO replace :id with {id} etc for all path params
         const requestPath: string = prefix + routeDef.path;
 
@@ -125,14 +140,16 @@ export class OasAutogenBuilder {
           description: docDef?.model.description ??
             routeDef.methodName as string,
           responses: {
-            [code]: {},
+            [code]: { description: "" },
           },
-          parameters: filteredArgs.map((arg: RouteArgument) => ({
+          parameters: filteredArgs.map((
+            arg: RouteArgument,
+            index: number,
+          ): any => ({
             name: arg.key,
             in: arg.type,
             schema: {
-              // TODO infer this
-              type: "TBD",
+              type: filteredArgTypes[index],
             },
           })),
         };

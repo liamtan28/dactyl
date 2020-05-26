@@ -17,20 +17,27 @@ export const CONTROLLER_META_PROPKEY = Symbol("dactyl_controller_metadata");
 /**
  * Helper method for retrieving metadata of controller definition
  */
-export function getControllerOwnMeta(target: Function): ControllerMetadata | undefined {
+export function getControllerOwnMeta(
+  target: Function,
+): ControllerMetadata | undefined {
   return Reflect.get(target, CONTROLLER_META_PROPKEY);
 }
 
 /**
  * Helper method for retrieving metadata of controller
  */
-export function getControllerMeta(target: Object): ControllerMetadata | undefined {
+export function getControllerMeta(
+  target: Object,
+): ControllerMetadata | undefined {
   return getControllerOwnMeta(target.constructor);
 }
 /**
  * Helper method for setting controller own metadata with a given value.
  */
-export function setControllerOwnMeta(target: Function, value: ControllerMetadata): void {
+export function setControllerOwnMeta(
+  target: Function,
+  value: ControllerMetadata,
+): void {
   Reflect.defineProperty(target, CONTROLLER_META_PROPKEY, { value });
 }
 
@@ -38,7 +45,10 @@ export function setControllerOwnMeta(target: Function, value: ControllerMetadata
  * Helper method for setting controller metadata with a
  * given updated value
  */
-export function setControllerMeta(target: Object, value: ControllerMetadata): void {
+export function setControllerMeta(
+  target: Object,
+  value: ControllerMetadata,
+): void {
   setControllerOwnMeta(target.constructor, value);
 }
 /**
@@ -49,7 +59,10 @@ export function setControllerMeta(target: Object, value: ControllerMetadata): vo
  * default meta if the `@Controller` decorator has not been
  * used on the target yet
  */
-export function setControllerMetaIfNotDefined(target: object, value: ControllerMetadata): void {
+export function setControllerMetaIfNotDefined(
+  target: object,
+  value: ControllerMetadata,
+): void {
   if (!Reflect.has(target, CONTROLLER_META_PROPKEY)) {
     setControllerMeta(target, value);
   }
@@ -62,6 +75,7 @@ export function defaultMetadata(): ControllerMetadata {
     prefix: null,
     routes: new Map<string, RouteDefinition>(),
     defaultResponseCodes: new Map<string, number>(),
+    argTypes: new Map<string, string[]>(),
     args: [],
     docs: [],
   };

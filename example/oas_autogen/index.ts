@@ -7,7 +7,7 @@ import DinosaurController from "../DinosaurController.ts";
 const app: Application = new Application({
   controllers: [DinosaurController],
 });
-
+//Deno.exit(0);
 new OasAutogenBuilder(app)
   .addApplicationVersion("0.0.1")
   .addTitle("Dactyl example with dinosaur controller and routes")

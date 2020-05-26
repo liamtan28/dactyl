@@ -1,25 +1,49 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
 import { HttpMethod, ControllerMetadata } from "./types.ts";
-import { getControllerMeta, defaultMetadata, setControllerMeta } from "./metadata.ts";
+import {
+  getControllerMeta,
+  defaultMetadata,
+  setControllerMeta,
+} from "./metadata.ts";
+
+// When we need type metadata (i.e. Reflect.getMetadata)
+// We polyfill Reflect api
+import "./polyfill/Reflect.ts";
+
 /**
  * Responsible for producing function decorators for all given HttpMethods.
  * Uses a curried function to return the function decorator.
  */
-const defineRouteDecorator = (path: string = "/", requestMethod: HttpMethod): MethodDecorator => (
-  target: any,
-  propertyKey: string | Symbol
-): void => {
-  const meta: ControllerMetadata = getControllerMeta(target) ?? defaultMetadata();
+const defineRouteDecorator = (
+  path: string = "/",
+  requestMethod: HttpMethod,
+): MethodDecorator =>
+  (
+    target: any,
+    propertyKey: string | Symbol,
+  ): void => {
+    const meta: ControllerMetadata = getControllerMeta(target) ??
+      defaultMetadata();
 
-  meta.routes.set(propertyKey, {
-    requestMethod,
-    path,
-    methodName: propertyKey,
-  });
+    meta.routes.set(propertyKey, {
+      requestMethod,
+      path,
+      methodName: propertyKey,
+    });
 
-  setControllerMeta(target, meta);
-};
+    // As the method is initialised, set the argTypes
+    // meta for document autogeneration
+    const argTypes: Array<string> = Reflect.getMetadata(
+      "design:paramtypes",
+      target,
+      propertyKey as string,
+    ).map((type: Function): string => type.name.toLowerCase());
+
+    meta.argTypes.set(propertyKey as string, argTypes);
+
+    setControllerMeta(target, meta);
+  };
 
 /**
  * Method decorator function for mapping Get requests.

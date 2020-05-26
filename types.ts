@@ -35,6 +35,7 @@ export interface ControllerMetadata {
   routes: Map<string | Symbol, RouteDefinition>;
   defaultResponseCodes: Map<string | Symbol, number>;
   args: Array<RouteArgument>;
+  argTypes: Map<string, Array<string>>;
   docs: Array<DocDefinition>;
 }
 /**
