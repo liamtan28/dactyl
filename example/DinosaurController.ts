@@ -18,12 +18,16 @@ import {
   RouterContext,
   OakRequest,
   OakResponse,
+  Doc,
 } from "./deps.ts";
 
 @Controller("/dinosaur")
 class DinosaurController {
   @Get("/")
   @HttpStatus(200)
+  @Doc({
+    description: "Gets all dinosaurs, and allows sorting and ordering",
+  })
   getDinosaurs(@Query("orderBy") orderBy: any, @Query("sort") sort: any) {
     const dinosaurs: any[] = [
       { name: "Tyrannosaurus Rex", period: "Maastrichtian" },
@@ -49,6 +53,10 @@ class DinosaurController {
     };
   }
   @Post("/")
+  @HttpStatus(201)
+  @Doc({
+    description: "Create a new dinosaur",
+  })
   createDinosaur(@Body("name") name: any) {
     if (!name) {
       throw new BadRequestException("name is a required field");

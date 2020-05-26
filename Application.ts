@@ -10,12 +10,14 @@ import { ApplicationConfig } from "./types.ts";
  * onto Router, and starting the Oak webserver
  */
 export class Application {
+  appConfig: ApplicationConfig;
   private router: Router;
   private app: OakApplication;
 
   public constructor(appConfig: ApplicationConfig) {
     this.router = new Router();
     this.app = new OakApplication();
+    this.appConfig = appConfig;
 
     for (const controller of appConfig.controllers) {
       this.router.register(controller);
@@ -60,6 +62,10 @@ export class Application {
         status: 404,
       };
     });
+  }
+
+  public getAppConfig(): ApplicationConfig {
+    return this.appConfig;
   }
   /**
    * Function responsible for begin listen of oak webserver.

@@ -61,7 +61,8 @@ export function defaultMetadata(): ControllerMetadata {
   return {
     prefix: null,
     routes: new Map<string, RouteDefinition>(),
-    args: [],
     defaultResponseCodes: new Map<string, number>(),
+    args: [],
+    docs: [],
   };
 }

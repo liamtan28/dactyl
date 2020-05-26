@@ -20,6 +20,8 @@ export {
   HttpException,
   BadRequestException,
   Application,
+  Doc,
+  OasAutogenBuilder,
 } from "../mod.ts";
 
 // Import this dependency if you wish to typecheck the result

@@ -34,7 +34,18 @@ export interface ControllerMetadata {
   prefix: string | null;
   routes: Map<string | Symbol, RouteDefinition>;
   defaultResponseCodes: Map<string | Symbol, number>;
-  args: RouteArgument[];
+  args: Array<RouteArgument>;
+  docs: Array<DocDefinition>;
+}
+/**
+ * Documentation definition metadata, used for OpenAPI
+ * spec autogeneration. Metadata is optional on controller
+ * actions, but will allow more detailed path objects
+ * in OpenAPI if specified
+ */
+export interface DocDefinition {
+  docFor: string | Symbol;
+  model: OasPathObject;
 }
 /**
  * Route definition metadata, as mapped to a controller
@@ -68,4 +79,49 @@ export interface ApplicationConfig {
  */
 export interface Newable<T> {
   new (...args: any[]): T;
+}
+
+/**
+ * OpenAPI compliant JSON definition. Used for 
+ * OAS autogen features
+ */
+export interface OpenApiSpecRoot {
+  openapi: string;
+  info: {
+    title: string;
+    description: string;
+    version: string;
+  };
+  paths: OasPathsRoot;
+  components: {
+    schemas: {};
+    responses: {};
+    parameters: {};
+    examples: {};
+    requestBodies: {};
+    headers: {};
+    securitySchemes: {};
+    links: {};
+    callbacks: {};
+  };
+}
+/**
+ * Open API Specification model for paths root
+ */
+export interface OasPathsRoot {
+  [path: string]: {
+    [method: string]: {
+      description: string;
+      responses: {
+        [code: string]: {};
+      };
+      parameters: Array<any>;
+    };
+  };
+}
+/**
+ * Open API Specification model for paths object
+ */
+export interface OasPathObject {
+  description?: string;
 }
