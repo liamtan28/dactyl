@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std/testing/asserts.ts";
+import { assertEquals } from "./deps.ts";
 import { defineParameterDecorator } from "./Arg.ts";
 import { Get } from "./Method.ts";
 import { getControllerOwnMeta } from "./metadata.ts";
@@ -8,9 +8,6 @@ import { ControllerMetadata, RouteArgument, ArgsType } from "./types.ts";
 const TEST_ARG_TYPE: ArgsType = ArgsType.PARAM;
 const TestDecorator = (key: string) => defineParameterDecorator(TEST_ARG_TYPE, key);
 
-/**
- * @Param tests
- */
 Deno.test({
   name: "Arg decorator appropriately applies default metadata if class is Newable non-controller",
   fn(): void {
