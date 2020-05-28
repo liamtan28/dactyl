@@ -1,36 +1,37 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
 import { ArgsType, ControllerMetadata } from "./types.ts";
-import { setControllerMeta, getControllerMeta, defaultMetadata } from "./metadata.ts";
+import {
+  setControllerMeta,
+  getControllerMeta,
+  defaultMetadata,
+} from "./metadata.ts";
 
 /**
  * Curried function responsible for generating parameter decorators
  * for controller actions.
  */
-const defineParameterDecorator = (
+export const defineParameterDecorator = (
   argType: ArgsType,
-  paramKeyRequired?: boolean | undefined,
-  paramKey?: string
-): ParameterDecorator => (
-  target: any,
-  propertyKey: string | Symbol,
-  parameterIndex: number
-): void => {
-  if (paramKeyRequired && !paramKey) {
-    throw new Error(`${propertyKey} decorated with ${argType} requires a paramter argument`);
-  }
+  paramKey?: string,
+): ParameterDecorator =>
+  (
+    target: any,
+    propertyKey: string | Symbol,
+    parameterIndex: number,
+  ): void => {
+    const meta: ControllerMetadata = getControllerMeta(target) ??
+      defaultMetadata();
 
-  const meta: ControllerMetadata = getControllerMeta(target) ?? defaultMetadata();
+    meta.args.push({
+      type: argType,
+      key: paramKey || "",
+      index: parameterIndex,
+      argFor: propertyKey,
+    });
 
-  meta.args.push({
-    type: argType,
-    key: paramKey || "",
-    index: parameterIndex,
-    argFor: propertyKey,
-  });
-
-  setControllerMeta(target, meta);
-};
+    setControllerMeta(target, meta);
+  };
 
 /**
  * Parameter decorator - maps `context.params` onto controller actions
@@ -41,7 +42,7 @@ const defineParameterDecorator = (
  * ```
  */
 export function Param(paramKey: string): ParameterDecorator {
-  return defineParameterDecorator(ArgsType.PARAM, true, paramKey);
+  return defineParameterDecorator(ArgsType.PARAM, paramKey);
 }
 /**
  * Parameter decorator - maps `context.request.body()` onto controller actions
@@ -52,7 +53,7 @@ export function Param(paramKey: string): ParameterDecorator {
  * ```
  */
 export function Body(bodyKey: string): ParameterDecorator {
-  return defineParameterDecorator(ArgsType.BODY, true, bodyKey);
+  return defineParameterDecorator(ArgsType.BODY, bodyKey);
 }
 /**
  * Parameter decorator - maps `url.searchParams.entries()` onto controller actions
@@ -63,7 +64,7 @@ export function Body(bodyKey: string): ParameterDecorator {
  * ```
  */
 export function Query(queryKey: string): ParameterDecorator {
-  return defineParameterDecorator(ArgsType.QUERY, true, queryKey);
+  return defineParameterDecorator(ArgsType.QUERY, queryKey);
 }
 /**
  * Parameter decorator - maps `context.request.headers` onto controller actions
@@ -74,7 +75,7 @@ export function Query(queryKey: string): ParameterDecorator {
  * ```
  */
 export function Header(headerKey: string): ParameterDecorator {
-  return defineParameterDecorator(ArgsType.HEADER, true, headerKey);
+  return defineParameterDecorator(ArgsType.HEADER, headerKey);
 }
 /**
  * Parameter decorator - maps whole `context` onto controller actions
