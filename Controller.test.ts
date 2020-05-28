@@ -1,3 +1,5 @@
+// Copyright 2020 Liam Tan. All rights reserved. MIT license.
+
 import { assertEquals } from "./deps.ts";
 
 import { Controller } from "./Controller.ts";
