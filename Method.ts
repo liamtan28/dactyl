@@ -6,7 +6,7 @@ import { getControllerMeta, defaultMetadata, setControllerMeta } from "./metadat
  * Responsible for producing function decorators for all given HttpMethods.
  * Uses a curried function to return the function decorator.
  */
-const defineRouteDecorator = (path: string = "/", requestMethod: HttpMethod): MethodDecorator => (
+export const defineRouteDecorator = (path: string = "/", requestMethod: HttpMethod): MethodDecorator => (
   target: any,
   propertyKey: string | Symbol
 ): void => {
