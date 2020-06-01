@@ -6,6 +6,6 @@ export {
   RouterContext,
   Response,
   Middleware,
-} from "https://deno.land/x/oak/mod.ts";
-export { Status, STATUS_TEXT } from "https://deno.land/std/http/http_status.ts";
-export { assertEquals } from "https://deno.land/std/testing/asserts.ts";
+} from "https://deno.land/x/oak@v4.0.0/mod.ts";
+export { Status, STATUS_TEXT } from "https://deno.land/std@0.51.0/http/http_status.ts";
+export { assertEquals } from "https://deno.land/std@0.51.0/testing/asserts.ts";
