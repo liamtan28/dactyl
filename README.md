@@ -111,7 +111,7 @@ class DinosaurController {
     };
   }
   @Post("/")
-  async createDinosaur(@Body("name") name: any) {
+  createDinosaur(@Body("name") name: any) {
     if (!name) {
       throw new BadRequestException("name is a required field");
     }
@@ -120,7 +120,7 @@ class DinosaurController {
     };
   }
   @Put("/:id")
-  async updateDinosaur(@Param("id") id: any, @Body("name") name: any) {
+  updateDinosaur(@Param("id") id: any, @Body("name") name: any) {
     return {
       message: `Updated name of dinosaur with id ${id} to ${name}`,
     };
@@ -138,6 +138,7 @@ class DinosaurController {
 }
 
 export default DinosaurController;
+
 ```
 
 `index.ts`
