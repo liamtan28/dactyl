@@ -19,10 +19,9 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
+    - name: Run `deno test` with deno-cli wrapper and Makefile
     - uses: denolib/setup-deno@v1.3.0
-
-    # Runs a single command using the runners shell
-    - name: Run `deno test` with deno-cli wrapper
-      run: deno test -c tsconfig.json
+      with:
+        deno-version: v0.51.0
+    - run: make test
