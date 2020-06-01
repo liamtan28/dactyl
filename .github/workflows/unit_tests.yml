@@ -25,4 +25,4 @@ jobs:
 
     # Runs a single command using the runners shell
     - name: Run `deno test` with deno-cli wrapper
-      run: deno test
+      run: deno test -c tsconfig.json
