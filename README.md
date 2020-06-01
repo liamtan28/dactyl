@@ -16,10 +16,10 @@ Currently, through `mod.ts`, you have access to (docs link on left):
 
 _For following - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)_
 
-6. `@Param` decorator maps `context.params` onto argument in controller action
-7. `@Body` decorator maps `context.request` async body onto argument in controller action
-8. `@Query` - maps `context.url.searchParams` onto argument in controller action -
-9. `@Header` - maps `context.headers` onto argument in controller action
+6. `@Param` decorator maps `context.params` onto argument in controller action (returns whole `params` object if no key specified)
+7. `@Body` decorator maps `context.request` async body onto argument in controller action (returns whole `body` object if no key specified)
+8. `@Query` - maps `context.url.searchParams` onto argument in controller action (returns whole `query` object if no key specified)
+9. `@Header` - maps `context.headers` onto argument in controller action (returns whole `header` object if no key specified)
 10. `@Context` - return whole Oak `RouterContext` object
 11. `@Request` - return whole Oak `Request` object
 12. `@Response` - return whole Oak `Response` object

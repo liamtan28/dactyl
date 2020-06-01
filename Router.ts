@@ -194,7 +194,7 @@ ______           _         _
           return params[arg.key];
         case ArgsType.BODY:
           if (typeof arg.key === "undefined") {
-            return body;
+            return body.value;
           }
           return body.value[arg.key];
         case ArgsType.QUERY:

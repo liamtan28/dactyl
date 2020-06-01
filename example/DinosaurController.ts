@@ -58,9 +58,9 @@ class DinosaurController {
     };
   }
   @Put("/:id")
-  updateDinosaur(@Param("id") id: any, @Body("name") name: any) {
+  updateDinosaur(@Param("id") id: any, @Body() body: any) {
     return {
-      message: `Updated name of dinosaur with id ${id} to ${name}`,
+      message: `Updated name of dinosaur with id ${id} to ${body.name}`,
     };
   }
   @Delete("/:id")
