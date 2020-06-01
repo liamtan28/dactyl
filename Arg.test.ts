@@ -1,7 +1,7 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
 import { assertEquals } from "./deps.ts";
-import { defineParameterDecorator } from "./Arg.ts";
+import { defineParameterDecorator, Param, Body, Query, Header } from "./Arg.ts";
 import { Get } from "./Method.ts";
 import { getControllerOwnMeta } from "./metadata.ts";
 import { ControllerMetadata, RouteArgument, ArgsType } from "./types.ts";
@@ -43,5 +43,53 @@ Deno.test({
         assertEquals(appliedArg?.argFor, actionName);
         assertEquals(appliedArg?.index, 0);
 
+    }
+});
+
+Deno.test({
+  name: "@Param decorator should allow no key passed",
+  fn(): void {
+    class TestClass {
+      @Get()
+      public testAction(@Param() params: Object): void {}
+    }
+      const meta: ControllerMetadata | undefined = getControllerOwnMeta(TestClass);
+      assertEquals(meta?.args[0].key, undefined);
+    }
+});
+
+Deno.test({
+  name: "@Body decorator should allow no key passed",
+  fn(): void {
+    class TestClass {
+      @Get()
+      public testAction(@Body() body: Object): void {}
+    }
+      const meta: ControllerMetadata | undefined = getControllerOwnMeta(TestClass);
+      assertEquals(meta?.args[0].key, undefined);
+    }
+});
+
+Deno.test({
+  name: "@Query decorator should allow no key passed",
+  fn(): void {
+    class TestClass {
+      @Get()
+      public testAction(@Query() query: Object): void {}
+    }
+      const meta: ControllerMetadata | undefined = getControllerOwnMeta(TestClass);
+      assertEquals(meta?.args[0].key, undefined);
+    }
+});
+
+Deno.test({
+  name: "@Header decorator should allow no key passed",
+  fn(): void {
+    class TestClass {
+      @Get()
+      public testAction(@Header() headers: Object): void {}
+    }
+      const meta: ControllerMetadata | undefined = getControllerOwnMeta(TestClass);
+      assertEquals(meta?.args[0].key, undefined);
     }
 });

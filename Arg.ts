@@ -25,7 +25,7 @@ export const defineParameterDecorator = (
 
     meta.args.push({
       type: argType,
-      key: paramKey || "",
+      key: paramKey,
       index: parameterIndex,
       argFor: propertyKey,
     });
@@ -41,7 +41,7 @@ export const defineParameterDecorator = (
  * public controllerAction(@Param('id') id: number): any {}
  * ```
  */
-export function Param(paramKey: string): ParameterDecorator {
+export function Param(paramKey?: string): ParameterDecorator {
   return defineParameterDecorator(ArgsType.PARAM, paramKey);
 }
 /**
@@ -52,7 +52,7 @@ export function Param(paramKey: string): ParameterDecorator {
  * public controllerAction(@Body('name') name: string): any { }
  * ```
  */
-export function Body(bodyKey: string): ParameterDecorator {
+export function Body(bodyKey?: string): ParameterDecorator {
   return defineParameterDecorator(ArgsType.BODY, bodyKey);
 }
 /**
@@ -63,7 +63,7 @@ export function Body(bodyKey: string): ParameterDecorator {
  * public controllerAction(@Query('orderBy') orderBy: string): any { }
  * ```
  */
-export function Query(queryKey: string): ParameterDecorator {
+export function Query(queryKey?: string): ParameterDecorator {
   return defineParameterDecorator(ArgsType.QUERY, queryKey);
 }
 /**
@@ -74,7 +74,7 @@ export function Query(queryKey: string): ParameterDecorator {
  * public controllerAction(@Header('content-type') contentType: string): any { }
  * ```
  */
-export function Header(headerKey: string): ParameterDecorator {
+export function Header(headerKey?: string): ParameterDecorator {
   return defineParameterDecorator(ArgsType.HEADER, headerKey);
 }
 /**

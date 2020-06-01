@@ -188,12 +188,24 @@ ______           _         _
     return filteredArguments.map((arg: RouteArgument): any => {
       switch (arg.type) {
         case ArgsType.PARAM:
+          if (typeof arg.key === "undefined") {
+            return params;
+          }
           return params[arg.key];
         case ArgsType.BODY:
+          if (typeof arg.key === "undefined") {
+            return body.value;
+          }
           return body.value[arg.key];
         case ArgsType.QUERY:
+          if (typeof arg.key === "undefined") {
+            return query;
+          }
           return query[arg.key];
         case ArgsType.HEADER:
+          if (typeof arg.key === "undefined") {
+            return headers;
+          }
           return headers[arg.key];
         case ArgsType.CONTEXT:
           return context;
