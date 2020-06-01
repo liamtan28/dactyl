@@ -53,7 +53,7 @@ export interface RouteDefinition {
 export interface RouteArgument {
   type: ArgsType;
   index: number;
-  key: string;
+  key: string | undefined;
   argFor: string | Symbol;
 }
 /**
