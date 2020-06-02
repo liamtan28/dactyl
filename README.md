@@ -1,4 +1,4 @@
-<img src="./media/fulllogo.jpg?raw=true" alt="dactyl" width="323" height="161"/>
+<img src="./media/fulllogo.jpg?raw=true" alt="dactyl" width="243" height="161"/>
 
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/dactyl/mod.ts)
 
