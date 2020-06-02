@@ -6,6 +6,9 @@ import {
   Status,
   STATUS_TEXT,
   Context,
+  red,
+  yellow,
+  green,
   blue,
   bgBlue,
 } from "./deps.ts";
@@ -59,13 +62,17 @@ export class Application {
     const method: string = context.request.method;
     const urlRaw: URL = context.request.url;
     const date: string = new Date().toTimeString();
-
     await next();
     const status: Status = context.response.status ?? Status.OK;
+    let colorFn: Function = green;
+    const statusPrefix: string = status.toString()[0];
+    if (statusPrefix === '3') colorFn = yellow;
+    else if (statusPrefix === '4' || statusPrefix === '5') colorFn = red;
+    
     console.info(
-      `${date} [${method.toUpperCase()}] - ${urlRaw.pathname} - [${status} ${STATUS_TEXT.get(
+      `${date} [${method.toUpperCase()}] - ${urlRaw.pathname} - ${colorFn(`[${status} ${STATUS_TEXT.get(
         status
-      )}]`
+      )}]`)}`
     );
   }
   /**
