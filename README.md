@@ -2,7 +2,7 @@
 
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/dactyl/mod.ts)
 
-![Dactyl](./media/logo.jpeg?raw=true)
+<img src="./media/logo.jpeg?raw=true" alt="dactyl" width="100" height="100"/>
 
 ### Web framework for Deno, built on top of Oak
 
