@@ -22,9 +22,8 @@ import { getControllerOwnMeta, defaultMetadata } from "./metadata.ts";
  * `Application` class for bootstrapping Oak application
  */
 export class Router extends OakRouter {
-  public constructor() {
-    super();
-    console.info(`\
+
+  private static LOGO_ASCII = `\
 ______           _         _ 
 |  _  \\         | |       | |
 | | | |__ _  ___| |_ _   _| |
@@ -33,8 +32,12 @@ ______           _         _
 |___/ \\__,_|\\___|\\__|\\__, |_| FRAMEWORK
                       __/ |  
                       |___/   
-    `);
-    console.info("Registered routes:\n");
+  `;
+  private bootstrapMsg: string;
+
+  public constructor() {
+    super();
+    this.bootstrapMsg = Router.LOGO_ASCII + '\n';
   }
   /**
    * Register function consumed by `Application`, takes controller
@@ -54,22 +57,23 @@ ______           _         _
    */
   public register(controller: Newable<any>): void {
     const instance: any = new controller();
-
     const meta: ControllerMetadata | undefined = getControllerOwnMeta(controller);
+
     if (!meta || !meta.prefix) {
       throw new Error("Attempted to register non-controller class to DactylRouter");
     }
-    console.info(`\t${meta.prefix}`);
+
+    this.appendToBootstrapMsg(`${meta.prefix}\n`);
 
     meta.routes.forEach((route: RouteDefinition): void => {
-      console.info(`\t\t[${route.requestMethod.toUpperCase()}] ${route.path}`);
 
+      this.appendToBootstrapMsg(`  [${route.requestMethod.toUpperCase()}] ${route.path}\n`);
       // normalize path if required
       let path: string = meta.prefix + route.path;
       if (path.slice(-1) === "/") {
         path = path.slice(0, -1);
       }
-
+  
       // Call routing function on OakRouter superclass
       this[route.requestMethod](
         path,
@@ -123,7 +127,7 @@ ______           _         _
         }
       );
     });
-    console.info("");
+    this.appendToBootstrapMsg("");
   }
   /**
    * Helper function for deconstructing Oaks `RouterContext` context
@@ -236,6 +240,12 @@ ______           _         _
     return this.routes();
   }
   /**
+   * Returns message to be displayed when application starts
+   */
+  public getBootstrapMsg(): string {
+    return this.bootstrapMsg;
+  }
+  /**
    * Helper method called when controller action returns no json, and
    * `RouterContext` `context.response.body` contains no body
    */
@@ -257,5 +267,13 @@ ______           _         _
       error: STATUS_TEXT.get(Status.InternalServerError),
       status: Status.InternalServerError,
     };
+  }
+  /**
+   * Helper that updates the internal bootstrap message. Used on application start
+   * to display on screen success.
+   */
+  private appendToBootstrapMsg(msg: string): string {
+    this.bootstrapMsg += msg;
+    return this.bootstrapMsg;
   }
 }

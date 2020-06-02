@@ -51,23 +51,21 @@ One caveat is to ensure you have a `tsconfig.json` file enabling `Reflect` and f
 This should result in the following output:
 
 ```
-_____           _         _
+______           _         _ 
 |  _  \         | |       | |
 | | | |__ _  ___| |_ _   _| |
 | | | / _` |/ __| __| | | | |
 | |/ / (_| | (__| |_| |_| | |
 |___/ \__,_|\___|\__|\__, |_| FRAMEWORK
-                      __/ |
-                      |___/
-
-Registered routes:
-
-        /dinosaur
-                [GET] /
-                [GET] /:id
-                [POST] /
-                [PUT] /:id
-                [DELETE] /:id
+                      __/ |  
+                      |___/   
+  
+/dinosaur
+  [GET] /
+  [GET] /:id
+  [POST] /
+  [PUT] /:id
+  [DELETE] /:id
 
 Dactyl running - please visit http://localhost:8000/
 ```

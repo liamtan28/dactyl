@@ -14,7 +14,7 @@ export class Application {
   private app: OakApplication;
 
   public constructor(appConfig: ApplicationConfig) {
-    const config: ApplicationConfig["config"] = appConfig.config;
+    const config: ApplicationConfig["config"] = appConfig.config ?? {};
     const { log = true, timing = true, cors = true }: any = config;
 
     this.router = new Router();
@@ -97,6 +97,8 @@ export class Application {
    * an argument.
    */
   public async run(port: number): Promise<void> {
+    const bootstrapMsg: string = this.router.getBootstrapMsg();
+    console.info(bootstrapMsg);
     console.info(`Dactyl running - please visit http://localhost:${port}/\n`);
     this.app.listen({ port });
   }
