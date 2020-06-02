@@ -40,6 +40,8 @@ export const defineParameterDecorator = (
  * ```ts
  * public controllerAction(@Param('id') id: number): any {}
  * ```
+ * 
+ * Returns whole `context.params` object if no key specified
  */
 export function Param(paramKey?: string): ParameterDecorator {
   return defineParameterDecorator(ArgsType.PARAM, paramKey);
@@ -51,6 +53,8 @@ export function Param(paramKey?: string): ParameterDecorator {
  * ```ts
  * public controllerAction(@Body('name') name: string): any { }
  * ```
+ * 
+ * Returns whole `context.request.body()` if no key specified
  */
 export function Body(bodyKey?: string): ParameterDecorator {
   return defineParameterDecorator(ArgsType.BODY, bodyKey);
@@ -62,6 +66,8 @@ export function Body(bodyKey?: string): ParameterDecorator {
  * ```ts
  * public controllerAction(@Query('orderBy') orderBy: string): any { }
  * ```
+ * 
+ * Returns whole `url.searchParams.entries()` if no key specified.
  */
 export function Query(queryKey?: string): ParameterDecorator {
   return defineParameterDecorator(ArgsType.QUERY, queryKey);
@@ -73,6 +79,7 @@ export function Query(queryKey?: string): ParameterDecorator {
  * ```ts
  * public controllerAction(@Header('content-type') contentType: string): any { }
  * ```
+ * Returns whole `context.request.headers` if no key specified
  */
 export function Header(headerKey?: string): ParameterDecorator {
   return defineParameterDecorator(ArgsType.HEADER, headerKey);
