@@ -1,8 +1,6 @@
-# Dactyl 🦇
+<img src="./media/fulllogo.jpg?raw=true" alt="dactyl" width="323" height="161"/>
 
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/dactyl/mod.ts)
-
-<img src="./media/fulllogo.jpg?raw=true" alt="dactyl" width="323" height="161"/>
 
 ### Web framework for Deno, built on top of Oak
 
