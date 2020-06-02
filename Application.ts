@@ -1,6 +1,14 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
-import { Application as OakApplication, Response, Status, STATUS_TEXT, Context } from "./deps.ts";
+import {
+  Application as OakApplication,
+  Response,
+  Status,
+  STATUS_TEXT,
+  Context,
+  blue,
+  bgBlue,
+} from "./deps.ts";
 
 import { Router } from "./Router.ts";
 import { ApplicationConfig } from "./types.ts";
@@ -98,8 +106,8 @@ export class Application {
    */
   public async run(port: number): Promise<void> {
     const bootstrapMsg: string = this.router.getBootstrapMsg();
-    console.info(bootstrapMsg);
-    console.info(`Dactyl running - please visit http://localhost:${port}/\n`);
+    console.log(blue(bootstrapMsg));
+    console.info(bgBlue(`Dactyl running - please visit http://localhost:${port}/`));
     this.app.listen({ port });
   }
 }

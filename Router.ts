@@ -1,7 +1,6 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
-import { Router as OakRouter, Middleware } from "./deps.ts";
-
+import { Router as OakRouter, Middleware} from "./deps.ts";
 import {
   RouteDefinition,
   HttpMethod,
