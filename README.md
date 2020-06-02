@@ -158,6 +158,25 @@ await app.run(8000);
 
 And away we go. This spins up a web server using oak with the appropriately registered routes based on your controller definitions.
 
+## Configuration
+
+There is additional configuration that you can pass to the application upon bootstrap:
+
+```ts
+const app: Application = new Application({
+  controllers: [DinosaurController],
+  config: {
+    cors: false, // true by default
+    timing: false, // true by default
+    log: false, // true by default
+  }
+});
+```
+1. `cors` - Enables CORS middleware (`true` by default). This sets the following headers to `*` on `context.response`: `access-control-allow-origin`, `access-control-allow-methods`, `access-control-allow-methods`.
+2. `timing` - Enables timing header middleware (`true` by default). This sets `X-Response-Time` header on `context.response`.
+3. `log` - Enables per-request logging (`true by default`). The message format is: `00:00:00 GMT+0000 (REGION) [GET] - /path/to/endpoint - [200 OK]`
+
+
 ## Exceptions
 
 Exceptions can be raised at any time in the request lifecycle. `HttpException` allows you to raise a custom exception, or you can

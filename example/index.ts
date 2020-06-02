@@ -6,11 +6,6 @@ import DinosaurController from "./DinosaurController.ts";
 
 const app: Application = new Application({
   controllers: [DinosaurController],
-  config: {
-    log: false,
-    cors: true,
-    timing: false,
-  }
 });
 const PORT = 8000;
 
