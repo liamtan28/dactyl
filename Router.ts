@@ -1,6 +1,6 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
-import { Router as OakRouter, Middleware} from "./deps.ts";
+import { Router as OakRouter, Middleware } from "./deps.ts";
 import {
   RouteDefinition,
   HttpMethod,
@@ -10,9 +10,9 @@ import {
   Newable,
 } from "./types.ts";
 
-import { HttpException } from "./HttpException.ts";
-import { RouterContext, Status, STATUS_TEXT } from "./deps.ts";
-import { getControllerOwnMeta, defaultMetadata } from "./metadata.ts";
+import { HttpException, InternalServerErrorException } from "./HttpException.ts";
+import { RouterContext, Status } from "./deps.ts";
+import { getControllerOwnMeta } from "./metadata.ts";
 
 /**
  * Router subclass - abstraction on top of `Router` class from Oak.
@@ -67,19 +67,14 @@ ______           _         _
     meta.routes.forEach((route: RouteDefinition): void => {
 
       this.appendToBootstrapMsg(`  [${route.requestMethod.toUpperCase()}] ${route.path}\n`);
-      // normalize path if required
-      let path: string = meta.prefix + route.path;
-      if (path.slice(-1) === "/") {
-        path = path.slice(0, -1);
-      }
   
       // Call routing function on OakRouter superclass
       this[route.requestMethod](
-        path,
+        this.normalizedPath(meta.prefix as string, route.path),
         async (context: RouterContext): Promise<void> => {
-          try {
+            // Retrieve data from context
             const { params, headers, query, body } = await this.retrieveFromContext(context);
-
+            // Using the controller metadata and data from context, build controller args
             const routeArgs: any[] = this.buildRouteArgumentsFromMeta(
               meta.args,
               route.methodName as string,
@@ -89,44 +84,49 @@ ______           _         _
               headers,
               context
             );
-
-            // call controller action here. Provide arguments injected via parameter
-            // decorator function metadata
-            const response: any = await instance[route.methodName as string](...routeArgs);
-
-            // controller action manually accesses context.request.body and returns nothing
-            // so return early
-            if (!response && context.response.body) return;
-            // controller action returned no data, and didn't attach anything to response
-            // body. Assume 204 no content.
-            else if (!response && !context.response.body) {
-              return this.sendNoData(context.response);
-            }
-
-            const statusCode: number =
-              meta.defaultResponseCodes.get(route.methodName) ||
-              (route.requestMethod == HttpMethod.POST ? 201 : 200);
-
-            // Assign body and status here before oak middleware moves to next
-            context.response.body = response;
-            context.response.status = statusCode;
-          } catch (error) {
-            // Handle known error here
-            if (error instanceof HttpException) {
-              const response: {
-                error: string | undefined;
-                status: Status;
-              } = error.getError();
-              context.response.status = response.status;
-              context.response.body = response;
-            } else {
-              this.handleUnknownException(error, context.response);
-            }
-          }
+            // execute controller action and return appropriate responseBody and status
+            const [responseBody, responseStatus] = await this.executeControllerAction(instance, route, routeArgs, meta, context); 
+            context.response.body = responseBody;
+            context.response.status = responseStatus;
         }
       );
     });
     this.appendToBootstrapMsg("");
+  }
+  /**
+   * Helper function that executes controller action, once finished this
+   * determines the correct status and response body from 
+   * what was returned from the controller action,
+   * and the `RouterContext`
+   */
+  private async executeControllerAction(instance: any, route: RouteDefinition, args: Array<any>, meta: ControllerMetadata, context: RouterContext): Promise<Array<number | any>> { 
+    let status: number = 200;
+    let body: any = {};
+    try {
+      const controllerResponse: any = await instance[route.methodName as string](...args);
+      if (!controllerResponse && context.response.body) {
+        status = this.getStatus(meta, route);
+        body = context.response.body;
+      }
+      else if (!controllerResponse && !context.response.body) {
+        status = 204;
+        body = null;
+      } else {
+        status = this.getStatus(meta, route);
+        body = controllerResponse;
+      }
+    } catch (error) {
+      if (!(error instanceof HttpException)) {
+        console.error(error);
+        error = new InternalServerErrorException();
+      }
+      status = error.getError().status;
+      body = error.getError();
+  
+    } finally {
+      return [status, body];
+    }
+   
   }
   /**
    * Helper function for deconstructing Oaks `RouterContext` context
@@ -222,6 +222,28 @@ ______           _         _
     });
   }
   /**
+   * Helper method for returning correct status code
+   * 
+   * Return either the default response code specified by `@HttpStatus` Method Decorator
+   * or return default response `200`, or `201` if post
+   */
+  private getStatus(meta: ControllerMetadata, route: RouteDefinition): number {
+    const isPostRequest: boolean = route.requestMethod == HttpMethod.POST;
+    return meta.defaultResponseCodes.get(route.methodName) ?? isPostRequest ? 201 : 200;
+  }
+  /**
+   * Helper method that combines controller prefix with route path.
+   * 
+   * If the path terminates in `/`, slice it.
+   */
+  private normalizedPath(prefix: string, path: string) {
+    let normalizedPath: string = prefix + path;
+    if (normalizedPath.slice(-1) === "/") {
+      normalizedPath = normalizedPath.slice(0, -1);
+    }
+    return normalizedPath;
+  }
+  /**
    * middleware getter for the internal router. To be used in `Application` bootstrap
    * where appropriate, E.g.
    *
@@ -251,21 +273,6 @@ ______           _         _
   private sendNoData(res: any): void {
     // Send 204 No Content.
     res.status = Status.NoContent;
-  }
-  /**
-   * Helper method for handling non-standard exceptions raised at runtime.
-   * This could be caused by an unhandled promise rejection, or a custom error
-   * thrown either internally or from an external module.
-   *
-   * Dactyl will send a 500 error to the end user.
-   */
-  private handleUnknownException(error: any, res: any): void {
-    console.error(error);
-    res.status = Status.InternalServerError;
-    res.body = {
-      error: STATUS_TEXT.get(Status.InternalServerError),
-      status: Status.InternalServerError,
-    };
   }
   /**
    * Helper that updates the internal bootstrap message. Used on application start
