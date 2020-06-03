@@ -86,6 +86,7 @@ ______           _         _
             );
             // execute controller action and return appropriate responseBody and status
             const [responseBody, responseStatus] = await this.executeControllerAction(instance, route, routeArgs, meta, context); 
+            
             context.response.body = responseBody;
             context.response.status = responseStatus;
         }
@@ -111,7 +112,7 @@ ______           _         _
     try {
       const controllerResponse: any = await instance[route.methodName as string](...args);
       if (!controllerResponse && context.response.body) {
-        status = this.getStatus(meta, route);
+        status = context.response.status ?? this.getStatus(meta, route);
         body = context.response.body;
       }
       else if (!controllerResponse && !context.response.body) {
@@ -130,7 +131,7 @@ ______           _         _
       body = error.getError();
   
     } finally {
-      return [status, body];
+      return [body, status];
     }
    
   }
@@ -234,8 +235,8 @@ ______           _         _
    * or return default response `200`, or `201` if post
    */
   private getStatus(meta: ControllerMetadata, route: RouteDefinition): number {
-    const isPostRequest: boolean = route.requestMethod == HttpMethod.POST;
-    return meta.defaultResponseCodes.get(route.methodName) ?? isPostRequest ? 201 : 200;
+    const isPostRequest: boolean = route.requestMethod === HttpMethod.POST;
+    return meta.defaultResponseCodes.get(route.methodName) ?? (isPostRequest ? 201 : 200);
   }
   /**
    * Helper method that combines controller prefix with route path.
