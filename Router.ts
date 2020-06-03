@@ -8,6 +8,7 @@ import {
   ControllerMetadata,
   RouteArgument,
   Newable,
+  ControllerCallback,
 } from "./types.ts";
 
 import { HttpException, InternalServerErrorException } from "./HttpException.ts";
@@ -53,8 +54,13 @@ ______           _         _
    * router.register(DinosaurController);
    * // router superclass now configured to use DinosaurController's actions
    * ```
+   * 
+   * returns `Map<string, ControllerCallback>` containing all routes and 
+   * callbacks mapped onto the oak router when `register` was called.
+   * Mainly used for testing.
    */
-  public register(controller: Newable<any>): void {
+  public register(controller: Newable<any>): Map<string, ControllerCallback> {
+    const fnMapping: Map<string, ControllerCallback> = new Map<string, ControllerCallback>();
     const instance: any = new controller();
     const meta: ControllerMetadata | undefined = getControllerOwnMeta(controller);
 
@@ -67,32 +73,37 @@ ______           _         _
     meta.routes.forEach((route: RouteDefinition): void => {
 
       this.appendToBootstrapMsg(`  [${route.requestMethod.toUpperCase()}] ${route.path}\n`);
-  
+      // define callback here
+      const controllerCb: ControllerCallback = async (context: RouterContext): Promise<void> => {
+        // Retrieve data from context
+        const { params, headers, query, body } = await this.retrieveFromContext(context);
+        // Using the controller metadata and data from context, build controller args
+        const routeArgs: Array<any> = this.buildRouteArgumentsFromMeta(
+          meta.args,
+          route.methodName as string,
+          params,
+          body,
+          query,
+          headers,
+          context
+        );
+
+        // execute controller action and return appropriate responseBody and status
+        const [responseBody, responseStatus] = await this.executeControllerAction(instance, route, routeArgs, meta, context); 
+        
+        context.response.body = responseBody;
+        context.response.status = responseStatus;
+      }
+
       // Call routing function on OakRouter superclass
       this[route.requestMethod](
         this.normalizedPath(meta.prefix as string, route.path),
-        async (context: RouterContext): Promise<void> => {
-            // Retrieve data from context
-            const { params, headers, query, body } = await this.retrieveFromContext(context);
-            // Using the controller metadata and data from context, build controller args
-            const routeArgs: Array<any> = this.buildRouteArgumentsFromMeta(
-              meta.args,
-              route.methodName as string,
-              params,
-              body,
-              query,
-              headers,
-              context
-            );
-            // execute controller action and return appropriate responseBody and status
-            const [responseBody, responseStatus] = await this.executeControllerAction(instance, route, routeArgs, meta, context); 
-            
-            context.response.body = responseBody;
-            context.response.status = responseStatus;
-        }
+        controllerCb,
       );
+      fnMapping.set(route.methodName as string, controllerCb);
     });
     this.appendToBootstrapMsg("");
+    return fnMapping;
   }
   /**
    * Helper function that executes controller action, once finished this

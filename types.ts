@@ -1,3 +1,5 @@
+import { RouterContext } from "./deps.ts";
+
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 export enum HttpMethod {
   GET = "get",
@@ -72,3 +74,8 @@ export interface ApplicationConfig {
 export interface Newable<T> {
   new (...args: any[]): T;
 }
+/**
+ * Structure of callback to be applied to Oak
+ * router
+ */
+export type ControllerCallback = (context: RouterContext) => Promise<void>;
