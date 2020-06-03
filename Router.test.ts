@@ -20,30 +20,6 @@ function makeMockRequest(endpoint: string): any {
 }
 
 Deno.test({
-    name: "Router should register GET action correctly",
-    async fn(): Promise<void> {
-        
-        const router: Router = new Router();
-        const methodName: string = "testAction";
-        const testDataKey: string = "testDataKey";
-        @Controller('/test')
-        class TestController {
-            @Get('/')
-            public [methodName]() {
-                return {
-                    data: "testDataKey",
-                }
-            }
-        }
-
-        const fnMapping: Map<string, ControllerCallback> = router.register(TestController);
-        const cb: ControllerCallback | undefined = fnMapping.get(methodName);
-        const mockContext: any = makeMockRequest('/test');
-        await (cb as ControllerCallback)(mockContext);
-        assertEquals(mockContext.response?.body?.data, testDataKey);
-    }
-});
-Deno.test({
     name: "Router should return data specified in controller action",
     async fn(): Promise<void> {
         
