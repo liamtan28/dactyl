@@ -162,7 +162,6 @@ ______           _         _
   }> {
     const url: URL = context.request.url;
     const headersRaw: Headers = context.request.headers;
-
     const params: any = context.params;
 
     const headers: any = {};
@@ -193,7 +192,7 @@ ______           _         _
     query: any,
     headers: any,
     context: RouterContext
-  ): any[] {
+  ): Array<any> {
     // Filter controller metadata to only include arg definitions
     // for this action
     const filteredArguments: RouteArgument[] = args.filter(
