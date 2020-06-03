@@ -1,7 +1,4 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
-
-import { Status } from "../../../../Library/Caches/deno/deps/https/deno.land/f97c42044a842b1399b05d131f0d2bd5b009453afcb617ce3e8f0728e1f5aafa";
-
 export enum HttpMethod {
   GET = "get",
   POST = "post",

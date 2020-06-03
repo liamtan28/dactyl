@@ -75,7 +75,7 @@ ______           _         _
             // Retrieve data from context
             const { params, headers, query, body } = await this.retrieveFromContext(context);
             // Using the controller metadata and data from context, build controller args
-            const routeArgs: any[] = this.buildRouteArgumentsFromMeta(
+            const routeArgs: Array<any> = this.buildRouteArgumentsFromMeta(
               meta.args,
               route.methodName as string,
               params,
@@ -99,7 +99,13 @@ ______           _         _
    * what was returned from the controller action,
    * and the `RouterContext`
    */
-  private async executeControllerAction(instance: any, route: RouteDefinition, args: Array<any>, meta: ControllerMetadata, context: RouterContext): Promise<Array<number | any>> { 
+  private async executeControllerAction(
+    instance: any,
+    route: RouteDefinition,
+    args: Array<any>,
+    meta: ControllerMetadata,
+    context: RouterContext
+  ): Promise<Array<number | any>> { 
     let status: number = 200;
     let body: any = {};
     try {
