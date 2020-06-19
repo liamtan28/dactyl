@@ -120,7 +120,7 @@ class DinosaurController {
   }
   @Put("/:id")
   @Before((body: any, params: any) => {
-    if(!body.name || !params.id) throw new BadRequestException('Caught in bad request in decorator');
+    if(!body.name || !params.id) throw new BadRequestException('Caught bad request in decorator');
   })
   @Before(async () => 
     await new Promise((resolve: Function) => 
