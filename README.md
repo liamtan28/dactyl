@@ -13,7 +13,7 @@ Currently, through `mod.ts`, you have access to (docs link on left):
 3. [HttpException](https://doc.deno.land/https/deno.land/x/dactyl/HttpException.ts) - throwable exception inside controller actions, `Application` will then handle said errors at top level and send the appropriate HTTP status code and message. There is also a list of included predefined `HttpException` classes, see below
 4. [HttpStatus.ts](https://doc.deno.land/https/deno.land/x/dactyl/HttpStatus.ts) - function decorator responsible for assigning default status codes for controller actions
 5. [Method.ts](https://doc.deno.land/https/deno.land/x/dactyl/Method.ts) - `@Get, @Post, @Put, @Patch, @Delete` function decorators responsible for defining routes on controller actions
-6. [Before.ts](https://doc.deno.land/https/deno.land/x/dactyl/Before.ts) - `@Before` method decorator responsible for defining actions to execute before controller action does. Has access to arguments as follows: `@Before(body, params, query, headers, context)`
+6. [Before.ts](https://doc.deno.land/https/deno.land/x/dactyl/Before.ts) - `@Before` method decorator responsible for defining actions to execute before controller action does. Has access to arguments as follows: `@Before((body, params, query, headers, context) => console.log('do something!')`
 
 _For following - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)_
 
