@@ -133,7 +133,7 @@ ______           _         _
   ): Promise<boolean> {
     try {
       for(const fn of beforeFns) {
-        await fn(params, headers, query, body.value, context);
+        await fn(body.value, params, query, headers, context);
       }
       return false;
     } catch (error) {
