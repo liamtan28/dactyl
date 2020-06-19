@@ -18,6 +18,7 @@ import {
   RouterContext,
   OakRequest,
   OakResponse,
+  Before,
 } from "./deps.ts";
 
 @Controller("/dinosaur")
@@ -49,6 +50,7 @@ class DinosaurController {
     };
   }
   @Post("/")
+  @Before(() => console.log('dddd'))
   createDinosaur(@Body("name") name: any) {
     if (!name) {
       throw new BadRequestException("name is a required field");

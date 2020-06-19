@@ -20,6 +20,7 @@ export {
   HttpException,
   BadRequestException,
   Application,
+  Before,
 } from "../mod.ts";
 
 // Import this dependency if you wish to typecheck the result
