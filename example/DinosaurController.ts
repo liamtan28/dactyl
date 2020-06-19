@@ -18,6 +18,7 @@ import {
   RouterContext,
   OakRequest,
   OakResponse,
+  Before,
 } from "./deps.ts";
 
 @Controller("/dinosaur")
@@ -58,6 +59,17 @@ class DinosaurController {
     };
   }
   @Put("/:id")
+  @Before((body: any, params: any) => {
+    if(!body.name || !params.id) throw new BadRequestException('Caught in bad request in decorator');
+  })
+  @Before(async () => 
+    new Promise((resolve: Function) => 
+      setTimeout((): void => {
+        console.log('Can add async actions here too!');
+        resolve();
+      }, 2000)
+    )
+  )
   updateDinosaur(@Param("id") id: any, @Body() body: any) {
     return {
       message: `Updated name of dinosaur with id ${id} to ${body.name}`,

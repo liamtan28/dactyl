@@ -13,6 +13,7 @@ Currently, through `mod.ts`, you have access to (docs link on left):
 3. [HttpException](https://doc.deno.land/https/deno.land/x/dactyl/HttpException.ts) - throwable exception inside controller actions, `Application` will then handle said errors at top level and send the appropriate HTTP status code and message. There is also a list of included predefined `HttpException` classes, see below
 4. [HttpStatus.ts](https://doc.deno.land/https/deno.land/x/dactyl/HttpStatus.ts) - function decorator responsible for assigning default status codes for controller actions
 5. [Method.ts](https://doc.deno.land/https/deno.land/x/dactyl/Method.ts) - `@Get, @Post, @Put, @Patch, @Delete` function decorators responsible for defining routes on controller actions
+6. [Before.ts](https://doc.deno.land/https/deno.land/x/dactyl/Before.ts) - `@Before` method decorator responsible for defining actions to execute before controller action does. Has access to arguments as follows: `@Before(body, params, query, headers, context)`
 
 _For following - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)_
 
@@ -118,9 +119,20 @@ class DinosaurController {
     };
   }
   @Put("/:id")
-  updateDinosaur(@Param("id") id: any, @Body("name") name: any) {
+  @Before((body: any, params: any) => {
+    if(!body.name || !params.id) throw new BadRequestException('Caught in bad request in decorator');
+  })
+  @Before(async () => 
+    new Promise((resolve: Function) => 
+      setTimeout((): void => {
+        console.log('Can add async actions here too!');
+        resolve();
+      }, 2000)
+    )
+  )
+  updateDinosaur(@Param("id") id: any, @Body() body: any) {
     return {
-      message: `Updated name of dinosaur with id ${id} to ${name}`,
+      message: `Updated name of dinosaur with id ${id} to ${body.name}`,
     };
   }
   @Delete("/:id")
@@ -129,8 +141,9 @@ class DinosaurController {
     @Request() req: OakRequest,
     @Response() res: OakResponse
   ) {
-    return {
-      message: `Deleted dinosaur with id ${ctx.params.id}`,
+    res.status = 404;
+    res.body = {
+      msg: `No dinosaur found with id ${ctx.params.id}`
     };
   }
 }
