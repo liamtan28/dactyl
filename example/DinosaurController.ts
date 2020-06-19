@@ -63,7 +63,7 @@ class DinosaurController {
     if(!body.name || !params.id) throw new BadRequestException('Caught in bad request in decorator');
   })
   @Before(async () => 
-    new Promise((resolve: Function) => 
+    await new Promise((resolve: Function) => 
       setTimeout((): void => {
         console.log('Can add async actions here too!');
         resolve();
