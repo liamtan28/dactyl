@@ -50,7 +50,7 @@ class DinosaurController {
     };
   }
   @Post("/")
-  @Before(() => console.log('dddd'))
+  @Before((body: any) => { if(!body.name) throw new BadRequestException('caught in before decorator'); })
   createDinosaur(@Body("name") name: any) {
     if (!name) {
       throw new BadRequestException("name is a required field");

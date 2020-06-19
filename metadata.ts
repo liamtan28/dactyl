@@ -50,5 +50,6 @@ export function defaultMetadata(): ControllerMetadata {
     routes: new Map<string, RouteDefinition>(),
     args: [],
     defaultResponseCodes: new Map<string, number>(),
+    beforeFns: new Map<string, Array<Function>>(),
   };
 }

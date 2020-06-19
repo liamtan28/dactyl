@@ -36,6 +36,7 @@ export interface ControllerMetadata {
   routes: Map<string | Symbol, RouteDefinition>;
   defaultResponseCodes: Map<string | Symbol, number>;
   args: RouteArgument[];
+  beforeFns: Map<string, Array<Function>>;
 }
 /**
  * Route definition metadata, as mapped to a controller
@@ -56,6 +57,14 @@ export interface RouteArgument {
   index: number;
   key: string | undefined;
   argFor: string | Symbol;
+}
+/**
+ * Definition for parameter decorator to apply a `@Before`
+ * function to be called before action is executed
+ */
+export interface BeforeDefinition {
+  functionFor: string | Symbol;
+  fn: Function;
 }
 /**
  * Root config for the `Application` class.

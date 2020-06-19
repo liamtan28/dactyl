@@ -88,6 +88,19 @@ ______           _         _
           context
         );
 
+        // execute any defined before actions. If any fails, this will
+        // return true. If it does return true, context response as
+        // been set so return early and skip controller action
+        const beforeFailed: boolean = await this.executeBeforeFns(
+          meta.beforeFns.get(route.methodName as string) ?? [],
+          body,
+          params,
+          query,
+          headers,
+          context
+        );
+        if (beforeFailed) return;
+
         // execute controller action and return appropriate responseBody and status
         const [responseBody, responseStatus] = await this.executeControllerAction(instance, route, routeArgs, meta, context); 
         
@@ -104,6 +117,31 @@ ______           _         _
     });
     this.appendToBootstrapMsg("");
     return fnMapping;
+  }
+  /**
+   * Helper function that executes before actions set by decorators.
+   * Async as function may be async. Supplies arguments to fn being
+   * executed to allow validation on body/params/headers to occur
+   */
+  private async executeBeforeFns(
+    beforeFns: Array<Function>,
+    body: any,
+    params: any,
+    query: any,
+    headers: Headers,
+    context: RouterContext
+  ): Promise<boolean> {
+    try {
+      for(const fn of beforeFns) {
+        await fn(params, headers, query, body.value, context);
+      }
+      return false;
+    } catch (error) {
+      const [errorStatus, errorBody] = this.handleError(error);
+      context.response.status = errorStatus;
+      context.response.body = errorBody;
+      return true;
+    }
   }
   /**
    * Helper function that executes controller action, once finished this
@@ -134,17 +172,25 @@ ______           _         _
         body = controllerResponse;
       }
     } catch (error) {
-      if (!(error instanceof HttpException)) {
-        console.error(error);
-        error = new InternalServerErrorException();
-      }
-      status = error.getError().status;
-      body = error.getError();
-  
+      const [errorStatus, errorBody] = this.handleError(error);
+      status = errorStatus;
+      body = errorBody;
     } finally {
       return [body, status];
     }
    
+  }
+  /**
+   * Helper function that returns the appropriate error status and body
+   * based on the error supplied. If its an `HttpException`, this
+   * will be raised, otherwise it will default to `500`
+   */
+  private handleError(error: any) {
+    if (!(error instanceof HttpException)) {
+      console.error(error);
+      error = new InternalServerErrorException();
+    }
+    return [error.getError().status, error.getError()];
   }
   /**
    * Helper function for deconstructing Oaks `RouterContext` context
