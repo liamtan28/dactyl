@@ -235,8 +235,8 @@ ______           _         _
     }
 
     let body: any = {};
-    if (context.request.hasBody) body = await context.request.body();
-
+    if (context.request.hasBody) body.value = await context.request.body().value;
+    
     return { params, headers, query, body };
   }
 
