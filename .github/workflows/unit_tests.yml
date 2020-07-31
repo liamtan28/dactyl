@@ -6,11 +6,9 @@ name: RunUnitTests
 # events but only for the master branch
 on:
   push:
-    # branches: [ master ]
-    branches: []
+    branches: [ master ]
   pull_request:
-    # branches: [ master ]
-    branches: []
+    branches: [ master ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -23,7 +21,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Run `deno test` with deno-cli wrapper and Makefile
-    - uses: denolib/setup-deno@v1.3.0
+      uses: denolib/setup-deno@v1.3.0
       with:
         deno-version: v0.51.0
     - run: make test
