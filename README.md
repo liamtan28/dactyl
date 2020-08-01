@@ -4,7 +4,13 @@
 ![RunUnitTests](https://github.com/liamtan28/dactyl/workflows/RunUnitTests/badge.svg?branch=master)
 ### Web framework for Deno, built on top of Oak
 
-## TL:DR; Available modules:
+## Currently in the works
+
+1. Dependency injection. This feature is coming soon.
+2. OpenAPI autogeneration of documentation
+3. CLI for autogeneration of Dactyl components
+
+## Available modules:
 
 Currently, through `mod.ts`, you have access to (docs link on left):
 
@@ -222,9 +228,3 @@ E.g.
 export { Controller, DactylRouter, Get } from "https://deno.land/x/dactyl/mod.ts";
 ```
 
-**In the works**
-
-1. `@Injectable` - DI implementation for controllers, allowing injectible services
-2. `@Before, @BeforeAll` - decorators for controller and controller actions for pre-request actions like validation
-3. CLI tool for boilerplate generation and file structure
-4. Website with docos.
