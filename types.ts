@@ -75,7 +75,7 @@ export interface ApplicationConfig {
     timing?: boolean;
     log?: boolean;
     cors?: boolean;
-  }
+  };
 }
 /**
  * Definition for a class.
@@ -88,3 +88,21 @@ export interface Newable<T> {
  * router
  */
 export type ControllerCallback = (context: RouterContext) => Promise<void>;
+
+/**
+ * Injection scope. Used by the `@Injectable` decorator
+ * to determine lifetime of dependency
+ */
+export enum EInjectionScope {
+  SINGLETON = "singleton",
+  TRANSIENT = "transient",
+  REQUEST = "request",
+}
+
+/**
+ * Definition consumable by `DependencyContainer` class
+ */
+export interface DependencyDefinition {
+  scope: EInjectionScope;
+  instanceOrDefinition: Newable<any> | any;
+}

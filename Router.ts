@@ -11,10 +11,7 @@ import {
   ControllerCallback,
 } from "./types.ts";
 
-import {
-  HttpException,
-  InternalServerErrorException,
-} from "./HttpException.ts";
+import { HttpException, InternalServerErrorException } from "./HttpException.ts";
 import { RouterContext, Status } from "./deps.ts";
 import { getControllerOwnMeta } from "./metadata.ts";
 
@@ -56,41 +53,28 @@ ______           _         _
    * router.register(DinosaurController);
    * // router superclass now configured to use DinosaurController's actions
    * ```
-   * 
-   * returns `Map<string, ControllerCallback>` containing all routes and 
+   *
+   * returns `Map<string, ControllerCallback>` containing all routes and
    * callbacks mapped onto the oak router when `register` was called.
    * Mainly used for testing.
    */
   public register(controller: Newable<any>): Map<string, ControllerCallback> {
-    const fnMapping: Map<string, ControllerCallback> = new Map<
-      string,
-      ControllerCallback
-    >();
+    const fnMapping: Map<string, ControllerCallback> = new Map<string, ControllerCallback>();
     const instance: any = new controller();
-    const meta: ControllerMetadata | undefined = getControllerOwnMeta(
-      controller,
-    );
+    const meta: ControllerMetadata | undefined = getControllerOwnMeta(controller);
 
     if (!meta || !meta.prefix) {
-      throw new Error(
-        "Attempted to register non-controller class to DactylRouter",
-      );
+      throw new Error("Attempted to register non-controller class to DactylRouter");
     }
 
     this.appendToBootstrapMsg(`${meta.prefix}\n`);
 
     meta.routes.forEach((route: RouteDefinition): void => {
-      this.appendToBootstrapMsg(
-        `  [${route.requestMethod.toUpperCase()}] ${route.path}\n`,
-      );
+      this.appendToBootstrapMsg(`  [${route.requestMethod.toUpperCase()}] ${route.path}\n`);
       // define callback here
-      const controllerCb: ControllerCallback = async (
-        context: RouterContext,
-      ): Promise<void> => {
+      const controllerCb: ControllerCallback = async (context: RouterContext): Promise<void> => {
         // Retrieve data from context
-        const { params, headers, query, body } = await this.retrieveFromContext(
-          context,
-        );
+        const { params, headers, query, body } = await this.retrieveFromContext(context);
         // Using the controller metadata and data from context, build controller args
         const routeArgs: Array<any> = this.buildRouteArgumentsFromMeta(
           meta.args,
@@ -99,7 +83,7 @@ ______           _         _
           body,
           query,
           headers,
-          context,
+          context
         );
 
         // execute any defined before actions. If any fails, this will
@@ -111,13 +95,18 @@ ______           _         _
           params,
           query,
           headers,
-          context,
+          context
         );
         if (beforeFailed) return;
 
         // execute controller action and return appropriate responseBody and status
-        const [responseBody, responseStatus] = await this
-          .executeControllerAction(instance, route, routeArgs, meta, context);
+        const [responseBody, responseStatus] = await this.executeControllerAction(
+          instance,
+          route,
+          routeArgs,
+          meta,
+          context
+        );
 
         context.response.body = responseBody;
         context.response.status = responseStatus;
@@ -126,7 +115,7 @@ ______           _         _
       // Call routing function on OakRouter superclass
       (this[route.requestMethod] as Function)(
         this.normalizedPath(meta.prefix as string, route.path),
-        controllerCb,
+        controllerCb
       );
       fnMapping.set(route.methodName as string, controllerCb);
     });
@@ -144,7 +133,7 @@ ______           _         _
     params: any,
     query: any,
     headers: Headers,
-    context: RouterContext,
+    context: RouterContext
   ): Promise<boolean> {
     try {
       for (const fn of beforeFns) {
@@ -160,7 +149,7 @@ ______           _         _
   }
   /**
    * Helper function that executes controller action, once finished this
-   * determines the correct status and response body from 
+   * determines the correct status and response body from
    * what was returned from the controller action,
    * and the `RouterContext`
    */
@@ -169,13 +158,12 @@ ______           _         _
     route: RouteDefinition,
     args: Array<any>,
     meta: ControllerMetadata,
-    context: RouterContext,
+    context: RouterContext
   ): Promise<Array<number | any>> {
     let status: number = 200;
     let body: any = {};
     try {
-      const controllerResponse: any =
-        await instance[route.methodName as string](...args);
+      const controllerResponse: any = await instance[route.methodName as string](...args);
       if (!controllerResponse && context.response.body) {
         status = context.response.status ?? this.getStatus(meta, route);
         body = context.response.body;
@@ -213,7 +201,7 @@ ______           _         _
    * and maps them appropriately
    */
   private async retrieveFromContext(
-    context: RouterContext,
+    context: RouterContext
   ): Promise<{
     params: any;
     headers: any;
@@ -236,7 +224,7 @@ ______           _         _
 
     let body: any = {};
     if (context.request.hasBody) body.value = await context.request.body().value;
-    
+
     return { params, headers, query, body };
   }
 
@@ -251,19 +239,17 @@ ______           _         _
     body: any,
     query: any,
     headers: any,
-    context: RouterContext,
+    context: RouterContext
   ): Array<any> {
     // Filter controller metadata to only include arg definitions
     // for this action
     const filteredArguments: RouteArgument[] = args.filter(
-      (arg: RouteArgument): boolean => arg.argFor === methodName,
+      (arg: RouteArgument): boolean => arg.argFor === methodName
     );
 
     // Metadata is assigned in a non-deterministic order, so
     // ensure order by sorting on index.
-    filteredArguments.sort((a: RouteArgument, b: RouteArgument): number =>
-      a.index - b.index
-    );
+    filteredArguments.sort((a: RouteArgument, b: RouteArgument): number => a.index - b.index);
 
     // Determined by the type of parameter decorator used, map the
     // arguments metadata onto the appropriate data source
@@ -302,18 +288,17 @@ ______           _         _
   }
   /**
    * Helper method for returning correct status code
-   * 
+   *
    * Return either the default response code specified by `@HttpStatus` Method Decorator
    * or return default response `200`, or `201` if post
    */
   private getStatus(meta: ControllerMetadata, route: RouteDefinition): number {
     const isPostRequest: boolean = route.requestMethod === HttpMethod.POST;
-    return meta.defaultResponseCodes.get(route.methodName) ??
-      (isPostRequest ? 201 : 200);
+    return meta.defaultResponseCodes.get(route.methodName) ?? (isPostRequest ? 201 : 200);
   }
   /**
    * Helper method that combines controller prefix with route path.
-   * 
+   *
    * If the path terminates in `/`, slice it.
    */
   private normalizedPath(prefix: string, path: string) {

@@ -60,15 +60,16 @@ class DinosaurController {
   }
   @Put("/:id")
   @Before((body: any, params: any) => {
-    if(!body.name || !params.id) throw new BadRequestException('Caught bad request in decorator');
+    if (!body.name || !params.id) throw new BadRequestException("Caught bad request in decorator");
   })
-  @Before(async () => 
-    await new Promise((resolve: Function) => 
-      setTimeout((): void => {
-        console.log('Can add async actions here too!');
-        resolve();
-      }, 2000)
-    )
+  @Before(
+    async () =>
+      await new Promise((resolve: Function) =>
+        setTimeout((): void => {
+          console.log("Can add async actions here too!");
+          resolve();
+        }, 2000)
+      )
   )
   updateDinosaur(@Param("id") id: any, @Body() body: any) {
     return {
@@ -83,7 +84,7 @@ class DinosaurController {
   ) {
     res.status = 404;
     res.body = {
-      msg: `No dinosaur found with id ${ctx.params.id}`
+      msg: `No dinosaur found with id ${ctx.params.id}`,
     };
   }
 }
