@@ -15,7 +15,7 @@ import { getControllerOwnMeta } from "./metadata.ts";
  * `Application` class for bootstrapping Oak application
  */
 export class Router extends OakRouter {
-  private static LOGO_ASCII = `\
+  #LOGO_ASCII = `\
 ______           _         _ 
 |  _  \\         | |       | |
 | | | |__ _  ___| |_ _   _| |
@@ -25,11 +25,11 @@ ______           _         _
                       __/ |  
                       |___/   
   `;
-  private bootstrapMsg: string;
+  #bootstrapMsg: string;
 
   public constructor() {
     super();
-    this.bootstrapMsg = Router.LOGO_ASCII + "\n";
+    this.#bootstrapMsg = this.#LOGO_ASCII + "\n";
   }
   /**
    * Register function consumed by `Application`, takes controller
@@ -47,18 +47,18 @@ ______           _         _
    * // router superclass now configured to use DinosaurController's actions
    * ```
    */
-  public register(controller: Newable<any>): void {
+  register(controller: Newable<any>): void {
     const meta: ControllerMetadata | undefined = getControllerOwnMeta(controller);
 
     if (!meta || !meta.prefix) {
       throw new Error("Attempted to register non-controller class to DactylRouter");
     }
 
-    this.appendToBootstrapMsg(`${meta.prefix}\n`);
+    this.#appendToBootstrapMsg(`${meta.prefix}\n`);
 
     meta.routes.forEach((route: RouteDefinition): void => {
-      this.appendToBootstrapMsg(`  [${route.requestMethod.toUpperCase()}] ${route.path}\n`);
-      const path: string = this.normalizedPath(meta.prefix as string, route.path);
+      this.#appendToBootstrapMsg(`  [${route.requestMethod.toUpperCase()}] ${route.path}\n`);
+      const path: string = this.#normalizedPath(meta.prefix as string, route.path);
 
       // Bind execution container to path in Oak
       (this[route.requestMethod] as Function)(
@@ -76,20 +76,20 @@ ______           _         _
         }
       );
     });
-    this.appendToBootstrapMsg("");
+    this.#appendToBootstrapMsg("");
   }
   /**
    * Helper method that combines controller prefix with route path.
    *
    * If the path terminates in `/`, slice it.
    */
-  private normalizedPath(prefix: string, path: string) {
+  #normalizedPath = (prefix: string, path: string) => {
     let normalizedPath: string = prefix + path;
     if (normalizedPath.slice(-1) === "/") {
       normalizedPath = normalizedPath.slice(0, -1);
     }
     return normalizedPath;
-  }
+  };
   /**
    * middleware getter for the internal router. To be used in `Application` bootstrap
    * where appropriate, E.g.
@@ -104,21 +104,21 @@ ______           _         _
    * // routes now mapped to oak
    * ```
    */
-  public middleware(): Middleware {
+  middleware(): Middleware {
     return this.routes();
   }
   /**
    * Returns message to be displayed when application starts
    */
-  public getBootstrapMsg(): string {
-    return this.bootstrapMsg;
+  getBootstrapMsg(): string {
+    return this.#bootstrapMsg;
   }
   /**
    * Helper that updates the internal bootstrap message. Used on application start
    * to display on screen success.
    */
-  private appendToBootstrapMsg(msg: string): string {
-    this.bootstrapMsg += msg;
-    return this.bootstrapMsg;
-  }
+  #appendToBootstrapMsg = (msg: string): string => {
+    this.#bootstrapMsg += msg;
+    return this.#bootstrapMsg;
+  };
 }
