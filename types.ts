@@ -1,4 +1,4 @@
-import { RouterContext } from "./deps.ts";
+import { RouterContext, Status } from "./deps.ts";
 
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 export enum HttpMethod {
@@ -105,4 +105,12 @@ export enum EInjectionScope {
 export interface DependencyDefinition {
   scope: EInjectionScope;
   instanceOrDefinition: Newable<any> | any;
+}
+/**
+ * Result of execution container
+ */
+export interface ExecutionResult {
+  success: boolean;
+  body: any;
+  status: Status;
 }
