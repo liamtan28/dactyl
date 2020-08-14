@@ -1,4 +1,5 @@
-import { Newable, EInjectionScope, DependencyDefinition } from "../types.ts";
+import { Newable, EInjectionScope, DependencyDefinition, RequestLifetime } from "../types.ts";
+import { v4 } from "../deps.ts";
 
 const CONSTRUCTOR_TYPE_META_TOKEN: string = "design:paramtypes";
 import { Reflect } from "./reflect-poly.ts";
@@ -13,13 +14,13 @@ export class DependencyContainer {
   /** Cached instances of dependencies */
   #depsSingleton: Map<string, any>;
   #depsTransient: Map<string, any>;
-  #depsRequest: Map<string, any>;
+  #depsRequest: Map<string, Map<string, any>>;
 
   constructor() {
     this.#serviceDefinitions = new Map<string, DependencyDefinition>();
     this.#depsSingleton = new Map<string, any>();
     this.#depsTransient = new Map<string, any>();
-    this.#depsRequest = new Map<string, any>();
+    this.#depsRequest = new Map<string, Map<string, any>>();
   }
   /**
    * `register` function will register an instance inside the `DependencyContainer`.
@@ -27,14 +28,36 @@ export class DependencyContainer {
    *  using the `@Inject()` decorator, but this will default to use the implicit
    *  type name.
    */
-  register(serviceDefinition: Newable<any>, scope: EInjectionScope, key: string) {
+  register(newable: Newable<any>, scope: EInjectionScope, key: string) {
     this.#serviceDefinitions.set(key, {
       scope,
-      serviceDefinition,
+      newable,
     });
   }
 
-  resolve<T>(key: string): T | null {
+  /**
+   * Request new lifetime. This will scope all REQUEST scoped services
+   * To it's own "container". You call resolve directly off this method
+   */
+  newRequestLifetime(): RequestLifetime {
+    // Store unique ID out of IIFE here so it retains reference.
+    // DANGER this might be a memory leak.
+    const requestId: string = v4.generate();
+
+    return (() => {
+      this.#depsRequest.set(requestId, new Map<string, any>());
+      return {
+        requestId,
+        resolve: (key: string): any | null => this.resolve(key, requestId),
+        end: (): void => this.endRequestLifetime(requestId),
+      };
+    })();
+  }
+  endRequestLifetime(requestId: string) {
+    this.#depsRequest.get(requestId)?.clear();
+  }
+
+  resolve<T>(key: string, requestId?: string | undefined): T | null {
     console.log("=====[BEGIN RESOLUTION]=====");
     const resolutionQueue: Array<any> = [];
     const rootServiceDefinition: DependencyDefinition | undefined = this.#serviceDefinitions.get(
@@ -48,13 +71,18 @@ export class DependencyContainer {
 
     // prefer cached version. If no cached, create new instance and cache it.
     const _processQueue = (): any => {
+      // TODO do a size check here. Remember, a requests scope can only
+      // increase or stay the same in a dependency tree, so:
+      // Request -> Request -> Singleton is allowed
+      // Singleton -> Request is invalid
+
       let dep: DependencyDefinition;
       let instance: any;
       while (resolutionQueue.length) {
         dep = resolutionQueue.pop();
 
         const scope: EInjectionScope = dep.scope;
-        const key: string = dep.serviceDefinition.name;
+        const key: string = dep.newable.name;
         let scopeMap: Map<string, any> | undefined;
 
         // If is cached, skip this resolution. Because the root service
@@ -67,13 +95,13 @@ export class DependencyContainer {
             scopeMap = this.#depsTransient;
             break;
           case EInjectionScope.REQUEST:
-            scopeMap = this.#depsRequest;
+            scopeMap = this.#depsRequest.get(requestId ?? "");
             break;
         }
-        if (scopeMap.has(key)) continue;
+        if (scopeMap?.has(key)) continue;
 
         const childDepDefinitions: Array<DependencyDefinition> = (
-          Reflect.getMetadata(CONSTRUCTOR_TYPE_META_TOKEN, dep.serviceDefinition) ?? []
+          Reflect.getMetadata(CONSTRUCTOR_TYPE_META_TOKEN, dep.newable) ?? []
         ).map(({ name }: { name: string }): DependencyDefinition | undefined =>
           this.#serviceDefinitions.get(name)
         );
@@ -83,9 +111,9 @@ export class DependencyContainer {
         // Queue is read backwards, meaning this will never be called
         // unless the children are already cached
         for (const childDepDefinition of childDepDefinitions) {
-          let childMap: Map<string, any>;
+          let childMap: Map<string, any> | undefined;
           const childScope: EInjectionScope = childDepDefinition.scope;
-          const childKey: string = childDepDefinition.serviceDefinition.name;
+          const childKey: string = childDepDefinition.newable.name;
           // TODO abstract this to a private method. It's used multiple times
           switch (childScope) {
             case EInjectionScope.SINGLETON:
@@ -95,18 +123,25 @@ export class DependencyContainer {
               childMap = this.#depsTransient;
               break;
             case EInjectionScope.REQUEST:
-              childMap = this.#depsRequest;
+              if (!requestId) {
+                throw new Error(`
+                  Attempted to resolve REQUEST scoped dependency (${childKey}) outside of RequestLifetime.
+                  REQUEST scoped dependencies may only be resolved by calling
+                  DependencyContainer.newRequestLifetime().resolve("key");
+                `);
+              }
+              childMap = this.#depsRequest.get(requestId);
               break;
           }
-          resolvedChildren.push(childMap.get(childKey));
+          resolvedChildren.push(childMap?.get(childKey));
           console.log(
-            `Hit cache for dependency with key: ${childKey} when resolving it's parent: ${key}, got ${childMap.get(
+            `Hit cache for dependency with key: ${childKey} and scope: ${childScope} when resolving it's parent: ${key}, got ${childMap?.get(
               childKey
             )}`
           );
         }
-        instance = new dep.serviceDefinition(...resolvedChildren);
-        scopeMap.set(key, instance);
+        instance = new dep.newable(...resolvedChildren);
+        scopeMap?.set(key, instance);
         console.log(`Pushed dependency with ${key} to cache with scope: ${scope.toUpperCase()}`);
       }
       return instance;
@@ -119,7 +154,7 @@ export class DependencyContainer {
       }
 
       const childDeps =
-        Reflect.getMetadata(CONSTRUCTOR_TYPE_META_TOKEN, serviceDefinition.serviceDefinition) ?? [];
+        Reflect.getMetadata(CONSTRUCTOR_TYPE_META_TOKEN, serviceDefinition.newable) ?? [];
 
       const childDefinitions: Array<DependencyDefinition> = childDeps.map(
         ({ name }: { name: string }) => this.#serviceDefinitions.get(name)
@@ -144,27 +179,22 @@ export class DependencyContainer {
       case EInjectionScope.TRANSIENT:
         throw new Error("Not impl");
       case EInjectionScope.REQUEST:
-        return this.#depsRequest.get(key) ?? _resolve(rootServiceDefinition);
+        if (!requestId) {
+          throw new Error(`
+            Attempted to resolve REQUEST scoped dependency (${key}) outside of RequestLifetime.
+            REQUEST scoped dependencies may only be resolved by calling
+            DependencyContainer.newRequestLifetime().resolve("key");
+          `);
+        }
+        return this.#depsRequest.get(requestId)?.get(key) ?? _resolve(rootServiceDefinition);
     }
   }
 
-  instanciateAllSingletons() {
+  instantiateAllSingletons() {
     for (const [key, definition] of this.#serviceDefinitions.entries()) {
       if (definition.scope === EInjectionScope.SINGLETON) {
         this.resolve<any>(key);
       }
     }
-  }
-
-  /**
-   * Garbage collect function that will remove any dependencies
-   * that are scoped as `EInjectionScope.REQUEST`
-   */
-  clearRequestDependencies() {
-    this.#depsRequest.clear();
-    // Javascript now garbage collects as no references to instances
-    // exist, except for controller. When request is finished,
-    // controller is binned, and then there are no references
-    // to the instance anymore. (i.e garbage collected)
   }
 }

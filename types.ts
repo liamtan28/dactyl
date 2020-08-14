@@ -105,7 +105,7 @@ export enum EInjectionScope {
  */
 export interface DependencyDefinition {
   scope: EInjectionScope;
-  serviceDefinition: Newable<any>;
+  newable: Newable<any>;
 }
 /**
  * Result of execution container
@@ -114,4 +114,9 @@ export interface ExecutionResult {
   success: boolean;
   body: any;
   status: Status;
+}
+export interface RequestLifetime {
+  requestId: string;
+  resolve: (key: string) => any | null;
+  end: () => void;
 }

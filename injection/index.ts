@@ -1,5 +1,5 @@
 import { Reflect } from "./reflect-poly.ts";
-import { EInjectionScope, Newable } from "../types.ts";
+import { EInjectionScope, Newable, RequestLifetime } from "../types.ts";
 import { DependencyContainer } from "./DependencyContainer.ts";
 
 const INJECTION_SCOPE_META_TOKEN: string = "injection_scope";
@@ -19,14 +19,14 @@ function Injectable(scope: EInjectionScope) {
 
 // USER CODE
 
-@Injectable(EInjectionScope.REQUEST)
+@Injectable(EInjectionScope.SINGLETON)
 class E {
   get val() {
     return "E";
   }
 }
 
-@Injectable(EInjectionScope.REQUEST)
+@Injectable(EInjectionScope.SINGLETON)
 class D {
   get val() {
     return "D";
@@ -92,41 +92,25 @@ class SingletonService {
 
 // END USER CODE
 
-function registerInjectables(
-  container: DependencyContainer,
-  serviceDefinitions: Array<Newable<any>>
-): void {
-  for (const serviceDefinition of serviceDefinitions) {
-    const scope: EInjectionScope = Reflect.getMetadata(
-      INJECTION_SCOPE_META_TOKEN,
-      serviceDefinition
-    );
-    // Check for key here
-    // For now defaulting to use Newable name as key
-    container.register(serviceDefinition, scope, serviceDefinition.name);
-  }
-}
-
 // Register injectables here
 const container: DependencyContainer = new DependencyContainer();
-const injectables: Array<Newable<any>> = [SingletonService, RootService, A, B, C, D, E];
-registerInjectables(container, injectables);
 
-container.instanciateAllSingletons();
+// Boring Reflection stuff here.
+const newables: Array<Newable<any>> = [SingletonService, RootService, A, B, C, D, E];
+for (const newable of newables) {
+  const scope: EInjectionScope = Reflect.getMetadata(INJECTION_SCOPE_META_TOKEN, newable);
+  container.register(newable, scope, newable.name);
+}
+container.instantiateAllSingletons();
 
-// resolve them here
-
-const root: RootService | null = container.resolve<RootService>("RootService");
-if (root === null) throw new Error("NULL");
-console.log(root.val);
-console.log(root.A.val);
-console.log(root.A2.val);
-console.log(root.A === root.A2);
-console.log(root.B.val);
+// Should fail. It fails because RootService depends on
+// request scoped providers, but you're calling this
+// without a requestLifetime.
+try {
+  container.resolve("RootService");
+} catch (e) {
+  console.log("Caught error on resolution: ", e);
+}
+const lifetime: RequestLifetime = container.newRequestLifetime();
+const root: RootService = lifetime.resolve("RootService"); // will succeed.
 console.log(root.A.D.val);
-console.log(root.A.E.val);
-console.log(root.B.C.val);
-// container.clearRequestDependencies();
-const singleton: SingletonService | null = container.resolve<SingletonService>("SingletonService");
-console.log(singleton);
-console.log(singleton?.E === root.A.E);
