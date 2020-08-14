@@ -38,6 +38,7 @@ export interface ControllerMetadata {
   args: RouteArgument[];
   beforeFns: Map<string, Array<Function>>;
 }
+
 /**
  * Route definition metadata, as mapped to a controller
  * action. Consumed in `ControllerMetadata` to build
@@ -104,7 +105,7 @@ export enum EInjectionScope {
  */
 export interface DependencyDefinition {
   scope: EInjectionScope;
-  instanceOrDefinition: Newable<any> | any;
+  serviceDefinition: Newable<any>;
 }
 /**
  * Result of execution container
