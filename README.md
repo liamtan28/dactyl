@@ -189,6 +189,16 @@ export default class DinosaurService {
   getById(id: string): any {
     return this.#dinosaurs[parseInt(id, 10)];
   }
+
+  addDinosaur(name: string) {
+    const newDinosaur: any = {
+      id: ++this.#lastId,
+      name,
+      period: "Unknown",
+    };
+    this.#dinosaurs.push(newDinosaur);
+    return newDinosaur;
+  }
 }
 ```
 
@@ -244,7 +254,7 @@ requests are received by the Dactyl server, both requests will receive their own
 `TRANSIENT` scoped dependencies are instantiated every time they are resolved, meaning every controller or service that consumes a `TRANSIENT` dependency will receive
 it's own instance.
 
-Currently, Dactyl supports only autoinjection of dependencies in the constructor. In order to do this, the following must be done:
+Currently, Dactyl supports autoinjection of dependencies in the constructor, and parameter injection. In order to do this, the following must be done:
 
 1. Tag your service with the `Injectable` class decorator, with the scope you want:
 
@@ -253,10 +263,11 @@ Currently, Dactyl supports only autoinjection of dependencies in the constructor
 class DinosaurService {}
 ```
 
-2. Consume your service in the desired controller. It will be resolved by the container based on it's type name:
+2. Consume your service in the desired controller. It will be resolved by the container based on it's type name. Be sure to tage the class with the `@AutoInject` decorator to auto inject constructor params.
 
 ```ts
 @Controller("/dinosaur")
+@AutoInject()
 class DinosaurController {
   constructor(private dinosaurService: DinosaurService) {}
 }
