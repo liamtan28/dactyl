@@ -1,9 +1,11 @@
 import { Reflect } from "./reflect-poly.ts";
 import { EInjectionScope, Newable, RequestLifetime } from "../types.ts";
 import { DependencyContainer } from "./DependencyContainer.ts";
+import { v4 } from "../deps.ts";
 
-const INJECTION_SCOPE_META_TOKEN: string = "injection_scope";
-const CONSTRUCTOR_TYPE_META_TOKEN: string = "design:paramtypes";
+export const INJECTION_SCOPE_META_TOKEN: Symbol = Symbol("dactyl:injection_scope");
+export const INJECTION_ID_META_TOKEN: Symbol = Symbol("dactyl:consumer_id");
+export const CONSTRUCTOR_TYPE_META_TOKEN: string = "design:paramtypes";
 
 function Controller(prefix: string) {
   return function (target: any): void {
@@ -19,7 +21,17 @@ function Injectable(scope: EInjectionScope) {
 
 // USER CODE
 
-@Injectable(EInjectionScope.SINGLETON)
+/*
+
+D(S) E(R) C(T)
+  \   /    |
+  A(T)    B(T)  C(T)
+  \      /      /
+   RootService(T)
+
+*/
+
+@Injectable(EInjectionScope.REQUEST)
 class E {
   get val() {
     return "E";
@@ -33,14 +45,14 @@ class D {
   }
 }
 
-@Injectable(EInjectionScope.REQUEST)
+@Injectable(EInjectionScope.TRANSIENT)
 class C {
   get val() {
     return "C";
   }
 }
 
-@Injectable(EInjectionScope.REQUEST)
+@Injectable(EInjectionScope.TRANSIENT)
 class B {
   constructor(private c: C) {}
   get val() {
@@ -65,17 +77,17 @@ class A {
   }
 }
 
-@Injectable(EInjectionScope.REQUEST)
+@Injectable(EInjectionScope.TRANSIENT)
 class RootService {
-  constructor(private a: A, private b: B, private a2: A) {}
+  constructor(private a: A, private b: B, private c: C) {}
   get val() {
     return "RootService";
   }
   get A() {
     return this.a;
   }
-  get A2() {
-    return this.a2;
+  get C() {
+    return this.c;
   }
   get B() {
     return this.b;
@@ -84,9 +96,9 @@ class RootService {
 
 @Injectable(EInjectionScope.SINGLETON)
 class SingletonService {
-  constructor(private e: E) {}
-  get E() {
-    return this.e;
+  constructor(private d: D) {}
+  get D() {
+    return this.d;
   }
 }
 
@@ -96,21 +108,25 @@ class SingletonService {
 const container: DependencyContainer = new DependencyContainer();
 
 // Boring Reflection stuff here.
-const newables: Array<Newable<any>> = [SingletonService, RootService, A, B, C, D, E];
+const newables: Array<Newable<any>> = [/*SingletonService,*/ RootService, A, B, C, D, E];
 for (const newable of newables) {
   const scope: EInjectionScope = Reflect.getMetadata(INJECTION_SCOPE_META_TOKEN, newable);
   container.register(newable, scope, newable.name);
 }
-container.instantiateAllSingletons();
+//container.instantiateAllSingletons();
 
-// Should fail. It fails because RootService depends on
-// request scoped providers, but you're calling this
-// without a requestLifetime.
-try {
-  container.resolve("RootService");
-} catch (e) {
-  console.log("Caught error on resolution: ", e);
-}
+/**
+ * FROM AUTOFAC DOCS
+ *
+ * It is recommended you always resolve components from a
+ * lifetime scope where possible to make sure service
+ * instances are properly disposed and garbage
+ * collected.
+ *
+ */
+
 const lifetime: RequestLifetime = container.newRequestLifetime();
 const root: RootService = lifetime.resolve("RootService"); // will succeed.
 console.log(root.A.D.val);
+const root2: RootService = lifetime.resolve("RootService");
+console.log(root2.A.E.val);
