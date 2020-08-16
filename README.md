@@ -31,11 +31,15 @@ _For following - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)
 10. `@Context` - return whole Oak `RouterContext` object
 11. `@Request` - return whole Oak `Request` object
 12. `@Response` - return whole Oak `Response` object
+13. `@Inject` - inject a dependency directly from DIContainer. specify key `@Inject("DinosaurService")`
 
-13. [Router.ts](https://doc.deno.land/https/deno.land/x/dactyl/Router.ts) - It is recommended that you use the `Application` to bootstrap, but you can use the `Router`
+14. [Router.ts](https://doc.deno.land/https/deno.land/x/dactyl/Router.ts) - It is recommended that you use the `Application` to bootstrap, but you can use the `Router`
     class directly. This is a superclass of Oak's router, and exposes additional methods for mapping `Controller` definitions onto routes.
 
-14. [Injectable](https://doc.deno.land/https/deno.land/x/dactyl/injectable.ts) - class decorator to tag service as injectable.
+_For following - [Injectable.ts](https://doc.deno.land/https/deno.land/x/dactyl/injectable.ts)_
+
+15. `@Injectable` - tag a service as injectable. Supply a scope, e.g. `@Injectable(EInjectionScope.SINGLETON)`
+16. `@AutoInject` - tag a controller to use auto-injection of constructor params.
 
 ## Purpose
 
@@ -91,6 +95,7 @@ Controllers are declared with function decorators. This stores metadata that is 
 
 ```ts
 @Controller("/dinosaur")
+@AutoInject()
 class DinosaurController {
   constructor(private dinosaurService: DinosaurService) {}
 
@@ -114,12 +119,17 @@ class DinosaurController {
   }
 
   @Post("/")
-  createDinosaur(@Body("name") name: any) {
+  createDinosaur(
+    @Body("name") name: any,
+    @Inject("DinosaurService") dinosaurService: DinosaurService
+  ) {
     if (!name) {
       throw new BadRequestException("name is a required field");
     }
+    const newDinosaur: any = dinosaurService.addDinosaur(name);
     return {
       message: `Created dinosaur with name ${name}`,
+      newDinosaur,
     };
   }
 
@@ -316,4 +326,3 @@ E.g.
 ```ts
 export { Controller, DactylRouter, Get } from "https://deno.land/x/dactyl/mod.ts";
 ```
-
