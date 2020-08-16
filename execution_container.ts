@@ -62,7 +62,8 @@ export class ExecutionContainer<T> {
    */
   #buildRouteArgumentsFromMeta = async (
     route: RouteDefinition,
-    context: RouterContext
+    context: RouterContext,
+    lifetime: RequestLifetime
   ): Promise<Array<any>> => {
     const { params, headers, query, body } = await this.#retrieveFromContext(context);
     // Filter controller metadata to only include arg definitions
@@ -106,7 +107,7 @@ export class ExecutionContainer<T> {
         case ArgsType.RESPONSE:
           return context.response;
         case ArgsType.INJECT:
-          return DIContainer.resolve(String(arg.key));
+          return lifetime.resolve(String(arg.key));
         default:
           throw null;
       }
@@ -149,7 +150,7 @@ export class ExecutionContainer<T> {
     const lifetime: RequestLifetime = DIContainer.newRequestLifetime();
 
     // Using the controller metadata and data from context, build controller args
-    const args: Array<any> = await this.#buildRouteArgumentsFromMeta(route, context);
+    const args: Array<any> = await this.#buildRouteArgumentsFromMeta(route, context, lifetime);
 
     // execute any defined before actions. If any fails, this will
     // return true. If it does return true, context response as
