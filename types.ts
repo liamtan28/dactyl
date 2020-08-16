@@ -23,6 +23,7 @@ export enum ArgsType {
   REQUEST = "request",
   RESPONSE = "response",
   COOKIE = "cookie",
+  INJECT = "inject",
 }
 
 /**
