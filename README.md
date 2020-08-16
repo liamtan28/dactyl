@@ -7,7 +7,7 @@
 
 ## Currently in the works
 
-1. Dependency injection. This feature is coming soon.
+1. Dependency injection (delivered and usable! Improvements in the works)
 2. OpenAPI autogeneration of documentation
 3. CLI for autogeneration of Dactyl components
 
