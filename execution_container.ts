@@ -19,31 +19,23 @@ import DIContainer from "./dependency_container.ts";
 export class ExecutionContainer<T> {
   #controllerDefinition: Newable<T>;
   #controllerMeta: ControllerMetadata;
-  #route: RouteDefinition;
-  #context: RouterContext;
 
-  constructor(controllerDefinition: Newable<T>, route: RouteDefinition, context: RouterContext) {
+  constructor(controllerDefinition: Newable<T>) {
     this.#controllerDefinition = controllerDefinition;
-    this.#route = route;
-
-    this.#context = context;
-    const meta: ControllerMetadata | undefined = getControllerOwnMeta(this.#controllerDefinition);
-
-    if (!meta || !meta.prefix) {
-      throw new Error("Attempted to register non-controller class");
-    }
-    this.#controllerMeta = meta;
+    this.#controllerMeta = <ControllerMetadata>getControllerOwnMeta(this.#controllerDefinition);
   }
 
-  #retrieveFromContext = async (): Promise<{
+  #retrieveFromContext = async (
+    context: RouterContext
+  ): Promise<{
     params: any;
     headers: any;
     query: any;
     body: any;
   }> => {
-    const url: URL = this.#context.request.url;
-    const headersRaw: Headers = this.#context.request.headers;
-    const params: any = this.#context.params;
+    const url: URL = context.request.url;
+    const headersRaw: Headers = context.request.headers;
+    const params: any = context.params;
 
     const headers: any = {};
 
@@ -57,8 +49,8 @@ export class ExecutionContainer<T> {
     }
 
     let body: any = {};
-    if (this.#context.request.hasBody) {
-      body.value = await this.#context.request.body().value;
+    if (context.request.hasBody) {
+      body.value = await context.request.body().value;
     }
 
     return { params, headers, query, body };
@@ -68,12 +60,16 @@ export class ExecutionContainer<T> {
    * Helper method for constructing controller action arguments
    * from metadata on the controller.
    */
-  #buildRouteArgumentsFromMeta = async (): Promise<Array<any>> => {
-    const { params, headers, query, body } = await this.#retrieveFromContext();
+  #buildRouteArgumentsFromMeta = async (
+    route: RouteDefinition,
+    context: RouterContext,
+    lifetime: RequestLifetime
+  ): Promise<Array<any>> => {
+    const { params, headers, query, body } = await this.#retrieveFromContext(context);
     // Filter controller metadata to only include arg definitions
     // for this action
     const filteredArguments: RouteArgument[] = this.#controllerMeta.args.filter(
-      (arg: RouteArgument): boolean => arg.argFor === this.#route.methodName
+      (arg: RouteArgument): boolean => arg.argFor === route.methodName
     );
 
     // Metadata is assigned in a non-deterministic order, so
@@ -105,24 +101,26 @@ export class ExecutionContainer<T> {
           }
           return headers[arg.key];
         case ArgsType.CONTEXT:
-          return this.#context;
+          return context;
         case ArgsType.REQUEST:
-          return this.#context.request;
+          return context.request;
         case ArgsType.RESPONSE:
-          return this.#context.response;
+          return context.response;
+        case ArgsType.INJECT:
+          return lifetime.resolve(String(arg.key));
         default:
           throw null;
       }
     });
   };
 
-  #executeBeforeFns = async (): Promise<void> => {
-    const { params, headers, query, body } = await this.#retrieveFromContext();
-    const methodName: string = this.#route.methodName as string;
+  #executeBeforeFns = async (route: RouteDefinition, context: RouterContext): Promise<void> => {
+    const { params, headers, query, body } = await this.#retrieveFromContext(context);
+    const methodName: string = route.methodName as string;
     const beforeFns: Array<Function> = this.#controllerMeta.beforeFns.get(methodName) ?? [];
 
     for (const fn of beforeFns) {
-      await fn(body.value, params, query, headers, this.#context);
+      await fn(body.value, params, query, headers, context);
     }
   };
 
@@ -134,15 +132,15 @@ export class ExecutionContainer<T> {
     return [error.getError().status, error.getError()];
   };
 
-  #getStatus = (): Status => {
-    const isPostRequest: boolean = this.#route.requestMethod === HttpMethod.POST;
+  #getStatus = (route: RouteDefinition): Status => {
+    const isPostRequest: boolean = route.requestMethod === HttpMethod.POST;
     return (
-      this.#controllerMeta.defaultResponseCodes.get(this.#route.methodName) ??
+      this.#controllerMeta.defaultResponseCodes.get(route.methodName) ??
       (isPostRequest ? Status.Created : Status.OK)
     );
   };
 
-  async execute(): Promise<ExecutionResult> {
+  async execute(route: RouteDefinition, context: RouterContext): Promise<ExecutionResult> {
     const result: ExecutionResult = {
       success: false,
       body: {},
@@ -152,13 +150,13 @@ export class ExecutionContainer<T> {
     const lifetime: RequestLifetime = DIContainer.newRequestLifetime();
 
     // Using the controller metadata and data from context, build controller args
-    const args: Array<any> = await this.#buildRouteArgumentsFromMeta();
+    const args: Array<any> = await this.#buildRouteArgumentsFromMeta(route, context, lifetime);
 
     // execute any defined before actions. If any fails, this will
     // return true. If it does return true, context response as
     // been set so return early and skip controller action
     try {
-      await this.#executeBeforeFns();
+      await this.#executeBeforeFns(route, context);
     } catch (e) {
       const [errorStatus, errorBody] = this.#handleError(e);
       result.body = errorBody;
@@ -167,31 +165,34 @@ export class ExecutionContainer<T> {
     }
 
     try {
-      // Resolve dependencies from container and construct controller
-      const types: Array<string> = getConstructorTypes(this.#controllerDefinition).map(
-        (type: any): string => type.name
-      );
+      const autoInject: boolean = this.#controllerMeta.autoInject;
       const resolvedDependencies: Array<any> = [];
-      for (const type of types) {
-        resolvedDependencies.push(lifetime.resolve(type));
+      if (autoInject) {
+        // Resolve dependencies from container and construct controller
+        const types: Array<string> = getConstructorTypes(this.#controllerDefinition).map(
+          (type: any): string => type.name
+        );
+        for (const type of types) {
+          resolvedDependencies.push(lifetime.resolve(type));
+        }
       }
 
       const instance: any = new this.#controllerDefinition(...resolvedDependencies);
 
       // execute action here.
-      const controllerResponse: any = await instance[this.#route.methodName as string](...args);
+      const controllerResponse: any = await instance[route.methodName as string](...args);
 
       // Body has manually been set
-      if (!controllerResponse && this.#context.response.body) {
-        result.status = this.#context.response.status ?? this.#getStatus();
-        result.body = this.#context.response.body;
+      if (!controllerResponse && context.response.body) {
+        result.status = context.response.status ?? this.#getStatus(route);
+        result.body = context.response.body;
       } // No body set and no response, 204
-      else if (!controllerResponse && !this.#context.response.body) {
+      else if (!controllerResponse && !context.response.body) {
         result.status = 204;
         result.body = null;
       } // Return value from controller action
       else {
-        result.status = this.#getStatus();
+        result.status = this.#getStatus(route);
         result.body = controllerResponse;
       }
       result.success = true;

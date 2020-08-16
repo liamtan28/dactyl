@@ -19,10 +19,13 @@ import {
   OakRequest,
   OakResponse,
   Before,
+  Inject,
+  AutoInject,
 } from "./deps.ts";
 import DinosaurService from "./DinosaurService.ts";
 
 @Controller("/dinosaur")
+@AutoInject()
 class DinosaurController {
   constructor(private dinosaurService: DinosaurService) {}
 
@@ -46,12 +49,17 @@ class DinosaurController {
   }
 
   @Post("/")
-  createDinosaur(@Body("name") name: any) {
+  createDinosaur(
+    @Body("name") name: any,
+    @Inject("DinosaurService") dinosaurService: DinosaurService
+  ) {
     if (!name) {
       throw new BadRequestException("name is a required field");
     }
+    const newDinosaur: any = dinosaurService.addDinosaur(name);
     return {
       message: `Created dinosaur with name ${name}`,
+      newDinosaur,
     };
   }
 

@@ -1,11 +1,9 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
 import { ArgsType, ControllerMetadata } from "./types.ts";
-import {
-  setControllerMeta,
-  getControllerMeta,
-  defaultMetadata,
-} from "./metadata.ts";
+import { setControllerMeta, getControllerMeta, defaultMetadata } from "./metadata.ts";
+
+//import { Reflect } from "./lib/reflect.ts";
 
 /**
  * Curried function responsible for generating parameter decorators
@@ -13,25 +11,21 @@ import {
  */
 export const defineParameterDecorator = (
   argType: ArgsType,
-  paramKey?: string,
-): ParameterDecorator =>
-  (
-    target: any,
-    propertyKey: string | Symbol,
-    parameterIndex: number,
-  ): void => {
-    const meta: ControllerMetadata = getControllerMeta(target) ??
-      defaultMetadata();
-
-    meta.args.push({
-      type: argType,
-      key: paramKey,
-      index: parameterIndex,
-      argFor: propertyKey,
-    });
-
-    setControllerMeta(target, meta);
-  };
+  paramKey?: string
+): ParameterDecorator => (
+  target: any,
+  propertyKey: string | Symbol,
+  parameterIndex: number
+): void => {
+  const meta: ControllerMetadata = getControllerMeta(target) ?? defaultMetadata();
+  meta.args.push({
+    type: argType,
+    key: paramKey,
+    index: parameterIndex,
+    argFor: propertyKey,
+  });
+  setControllerMeta(target, meta);
+};
 
 /**
  * Parameter decorator - maps `context.params` onto controller actions
@@ -40,7 +34,7 @@ export const defineParameterDecorator = (
  * ```ts
  * public controllerAction(@Param('id') id: number): any {}
  * ```
- * 
+ *
  * Returns whole `context.params` object if no key specified
  */
 export function Param(paramKey?: string): ParameterDecorator {
@@ -53,7 +47,7 @@ export function Param(paramKey?: string): ParameterDecorator {
  * ```ts
  * public controllerAction(@Body('name') name: string): any { }
  * ```
- * 
+ *
  * Returns whole `context.request.body()` if no key specified
  */
 export function Body(bodyKey?: string): ParameterDecorator {
@@ -66,7 +60,7 @@ export function Body(bodyKey?: string): ParameterDecorator {
  * ```ts
  * public controllerAction(@Query('orderBy') orderBy: string): any { }
  * ```
- * 
+ *
  * Returns whole `url.searchParams.entries()` if no key specified.
  */
 export function Query(queryKey?: string): ParameterDecorator {
@@ -116,4 +110,15 @@ export function Request(): ParameterDecorator {
  */
 export function Response(): ParameterDecorator {
   return defineParameterDecorator(ArgsType.RESPONSE);
+}
+/**
+ * Parameter decorator - maps dependency by key from DI container
+ * to a method argument
+ *
+ * ```ts
+ * public controllerAction(@Inject() userService: UserService): any { }
+ * ```
+ */
+export function Inject(key: string): ParameterDecorator {
+  return defineParameterDecorator(ArgsType.INJECT, key);
 }

@@ -23,6 +23,8 @@ export {
   Before,
   Injectable,
   EInjectionScope,
+  Inject,
+  AutoInject,
 } from "../mod.ts";
 
 // Import this dependency if you wish to typecheck the result

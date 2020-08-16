@@ -7,8 +7,7 @@ import { ExecutionContainer } from "./execution_container.ts";
 
 import { RouterContext } from "./deps.ts";
 import { getControllerOwnMeta } from "./metadata.ts";
-import { DependencyContainer } from "./dependency_container.ts";
-
+import { Route } from "https://deno.land/x/oak@v6.0.1/router.ts";
 /**
  * Router subclass - abstraction on top of `Router` class from Oak.
  *
@@ -28,17 +27,16 @@ ______           _         _
   `;
   #bootstrapMsg: string;
 
-  #executionMapping: Map<string, ExecutionContainer<any>>;
+  #containerCache: Map<string, ExecutionContainer<any>>;
 
   constructor() {
     super();
     this.#bootstrapMsg = this.#LOGO_ASCII + "\n";
-    this.#executionMapping = new Map<string, ExecutionContainer<any>>();
+    this.#containerCache = new Map<string, ExecutionContainer<any>>();
   }
 
-  /** Getter for execution mapping. used for testing. */
-  get executionMapping(): Map<string, ExecutionContainer<any>> {
-    return this.#executionMapping;
+  get containerCache(): Map<string, ExecutionContainer<any>> {
+    return this.#containerCache;
   }
 
   /**
@@ -59,26 +57,31 @@ ______           _         _
    */
   register(controller: Newable<any>): void {
     const meta: ControllerMetadata | undefined = getControllerOwnMeta(controller);
-
-    if (!meta || !meta.prefix) {
+    if (!meta) {
       throw new Error("Attempted to register non-controller class to DactylRouter");
     }
 
-    this.#appendToBootstrapMsg(`${meta.prefix}\n`);
-    meta.routes.forEach((route: RouteDefinition): void => {
-      this.#appendToBootstrapMsg(`  [${route.requestMethod.toUpperCase()}] ${route.path}\n`);
-      const path: string = this.#normalizedPath(String(meta.prefix), route.path);
-      // Bind execution container to path in Oak
+    const { prefix, routes }: ControllerMetadata = meta;
+
+    // An execution container is made for each controller.
+    const container: ExecutionContainer<any> = new ExecutionContainer<any>(controller);
+    this.#containerCache.set(String(prefix), container);
+
+    this.#appendToBootstrapMsg(`${prefix}\n`);
+
+    routes.forEach((route: RouteDefinition): void => {
+      const { requestMethod, path }: RouteDefinition = route;
+
+      this.#appendToBootstrapMsg(`  [${requestMethod.toUpperCase()}] ${path}\n`);
+
+      const normalizedPath: string = this.#normalizedPath(String(prefix), path);
+
       (<Function>this[route.requestMethod])(
-        path,
+        normalizedPath,
         async (context: RouterContext): Promise<void> => {
-          const container: ExecutionContainer<any> = new ExecutionContainer<any>(
-            controller,
-            route,
-            context
-          );
-          this.#executionMapping.set(String(route.methodName), container);
-          const result: ExecutionResult = await container.execute();
+          // on execution, tell the container what route to execute,
+          // and provide it the currently given context.
+          const result: ExecutionResult = await container.execute(route, context);
 
           context.response.body = result.body;
           context.response.status = result.status;

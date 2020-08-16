@@ -23,6 +23,7 @@ export enum ArgsType {
   REQUEST = "request",
   RESPONSE = "response",
   COOKIE = "cookie",
+  INJECT = "inject",
 }
 
 /**
@@ -37,6 +38,7 @@ export interface ControllerMetadata {
   defaultResponseCodes: Map<string | Symbol, number>;
   args: RouteArgument[];
   beforeFns: Map<string, Array<Function>>;
+  autoInject: boolean;
 }
 
 /**
