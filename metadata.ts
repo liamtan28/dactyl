@@ -68,5 +68,6 @@ export function defaultMetadata(): ControllerMetadata {
     args: [],
     defaultResponseCodes: new Map<string, number>(),
     beforeFns: new Map<string, Array<Function>>(),
+    autoInject: false,
   };
 }

@@ -6,7 +6,7 @@ export { Application } from "./Application.ts";
 export { HttpStatus } from "./HttpStatus.ts";
 export { HttpException } from "./HttpException.ts";
 export { Param, Body, Query, Header, Context, Request, Response, Inject } from "./Arg.ts";
-export { Injectable } from "./injectable.ts";
+export { Injectable, AutoInject } from "./injection.ts";
 export { Router } from "./Router.ts";
 export { Before } from "./Before.ts";
 export * from "./HttpException.ts";

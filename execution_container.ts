@@ -165,13 +165,16 @@ export class ExecutionContainer<T> {
     }
 
     try {
-      // Resolve dependencies from container and construct controller
-      const types: Array<string> = getConstructorTypes(this.#controllerDefinition).map(
-        (type: any): string => type.name
-      );
+      const autoInject: boolean = this.#controllerMeta.autoInject;
       const resolvedDependencies: Array<any> = [];
-      for (const type of types) {
-        resolvedDependencies.push(lifetime.resolve(type));
+      if (autoInject) {
+        // Resolve dependencies from container and construct controller
+        const types: Array<string> = getConstructorTypes(this.#controllerDefinition).map(
+          (type: any): string => type.name
+        );
+        for (const type of types) {
+          resolvedDependencies.push(lifetime.resolve(type));
+        }
       }
 
       const instance: any = new this.#controllerDefinition(...resolvedDependencies);

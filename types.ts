@@ -38,6 +38,7 @@ export interface ControllerMetadata {
   defaultResponseCodes: Map<string | Symbol, number>;
   args: RouteArgument[];
   beforeFns: Map<string, Array<Function>>;
+  autoInject: boolean;
 }
 
 /**
