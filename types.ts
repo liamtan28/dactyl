@@ -1,4 +1,4 @@
-import { RouterContext } from "./deps.ts";
+import { RouterContext, Status } from "./deps.ts";
 
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 export enum HttpMethod {
@@ -38,6 +38,7 @@ export interface ControllerMetadata {
   args: RouteArgument[];
   beforeFns: Map<string, Array<Function>>;
 }
+
 /**
  * Route definition metadata, as mapped to a controller
  * action. Consumed in `ControllerMetadata` to build
@@ -71,11 +72,12 @@ export interface BeforeDefinition {
  */
 export interface ApplicationConfig {
   controllers: Array<Newable<any>>;
+  injectables: Array<Newable<any>>;
   config?: {
     timing?: boolean;
     log?: boolean;
     cors?: boolean;
-  }
+  };
 }
 /**
  * Definition for a class.
@@ -88,3 +90,34 @@ export interface Newable<T> {
  * router
  */
 export type ControllerCallback = (context: RouterContext) => Promise<void>;
+
+/**
+ * Injection scope. Used by the `@Injectable` decorator
+ * to determine lifetime of dependency
+ */
+export enum EInjectionScope {
+  SINGLETON = "singleton",
+  TRANSIENT = "transient",
+  REQUEST = "request",
+}
+
+/**
+ * Definition consumable by `DependencyContainer` class
+ */
+export interface DependencyDefinition {
+  scope: EInjectionScope;
+  newable: Newable<any>;
+}
+/**
+ * Result of execution container
+ */
+export interface ExecutionResult {
+  success: boolean;
+  body: any;
+  status: Status;
+}
+export interface RequestLifetime {
+  requestId: string;
+  resolve: (key: string) => any | null;
+  end: () => void;
+}

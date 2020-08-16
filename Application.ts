@@ -14,35 +14,46 @@ import {
 } from "./deps.ts";
 
 import { Router } from "./Router.ts";
-import { ApplicationConfig } from "./types.ts";
+import { ApplicationConfig, EInjectionScope } from "./types.ts";
+import { DependencyContainer } from "./dependency_container.ts";
+import { getInjectableMetadata } from "./metadata.ts";
 
 /**
  * Bootstrap class responsible for registering controllers
  * onto Router, and starting the Oak webserver
  */
 export class Application {
-  private router: Router;
-  private app: OakApplication;
+  #router: Router;
+  #dependencyContainer: DependencyContainer;
+  #app: OakApplication;
 
   public constructor(appConfig: ApplicationConfig) {
     const config: ApplicationConfig["config"] = appConfig.config ?? {};
     const { log = true, timing = true, cors = true }: any = config;
 
-    this.router = new Router();
-    this.app = new OakApplication();
+    this.#dependencyContainer = new DependencyContainer();
+
+    for (const newable of appConfig.injectables) {
+      const scope: EInjectionScope = getInjectableMetadata(newable);
+      this.#dependencyContainer.register(newable, scope, newable.name);
+    }
+    this.#dependencyContainer.instantiateAllSingletons();
+
+    this.#router = new Router(this.#dependencyContainer);
+    this.#app = new OakApplication();
 
     for (const controller of appConfig.controllers) {
-      this.router.register(controller);
+      this.#router.register(controller);
     }
 
-    if (cors) this.app.use(this.cors);
-    if (timing) this.app.use(this.timing);
-    if (log) this.app.use(this.logger);
-  
+    if (cors) this.#app.use(this.cors);
+    if (timing) this.#app.use(this.timing);
+    if (log) this.#app.use(this.logger);
+
     // apply routes
-    this.app.use(this.router.middleware());
+    this.#app.use(this.#router.middleware());
     // if routes passes through, handle not found with 404 response.
-    this.app.use(this.handleNotFound);
+    this.#app.use(this.handleNotFound);
   }
   /**
    * Timing middleware, will be enabled in constructor if `appConfig.timing`
@@ -66,13 +77,13 @@ export class Application {
     const status: Status = context.response.status ?? Status.OK;
     let colorFn: Function = green;
     const statusPrefix: string = status.toString()[0];
-    if (statusPrefix === '3') colorFn = yellow;
-    else if (statusPrefix === '4' || statusPrefix === '5') colorFn = red;
-    
+    if (statusPrefix === "3") colorFn = yellow;
+    else if (statusPrefix === "4" || statusPrefix === "5") colorFn = red;
+
     console.info(
-      `${date} [${method.toUpperCase()}] - ${urlRaw.pathname} - ${colorFn(`[${status} ${STATUS_TEXT.get(
-        status
-      )}]`)}`
+      `${date} [${method.toUpperCase()}] - ${urlRaw.pathname} - ${colorFn(
+        `[${status} ${STATUS_TEXT.get(status)}]`
+      )}`
     );
   }
   /**
@@ -80,14 +91,17 @@ export class Application {
    * is `true`
    */
   private async cors(context: Context, next: Function): Promise<void> {
-    context.response.headers.set('Access-Control-Allow-Origin', context.request.headers.get('Origin') || '*');
     context.response.headers.set(
-      'Access-Control-Allow-Methods',
-      context.request.headers.get('Access-Control-Request-Method') || '*',
+      "Access-Control-Allow-Origin",
+      context.request.headers.get("Origin") || "*"
     );
     context.response.headers.set(
-        'Access-Control-Allow-Headers',
-        context.request.headers.get('Access-Control-Request-Headers') || '*',
+      "Access-Control-Allow-Methods",
+      context.request.headers.get("Access-Control-Request-Method") || "*"
+    );
+    context.response.headers.set(
+      "Access-Control-Allow-Headers",
+      context.request.headers.get("Access-Control-Request-Headers") || "*"
     );
 
     await next();
@@ -112,9 +126,9 @@ export class Application {
    * an argument.
    */
   public async run(port: number): Promise<void> {
-    const bootstrapMsg: string = this.router.getBootstrapMsg();
+    const bootstrapMsg: string = this.#router.getBootstrapMsg();
     console.log(blue(bootstrapMsg));
     console.info(bgBlue(`Dactyl running - please visit http://localhost:${port}/`));
-    this.app.listen({ port });
+    this.#app.listen({ port });
   }
 }
