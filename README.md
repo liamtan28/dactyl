@@ -2,6 +2,7 @@
 
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/dactyl/mod.ts)
 ![RunUnitTests](https://github.com/liamtan28/dactyl/workflows/RunUnitTests/badge.svg?branch=master)
+
 ### Web framework for Deno, built on top of Oak
 
 ## TL:DR; Available modules:
@@ -28,6 +29,8 @@ _For following - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)
 13. [Router.ts](https://doc.deno.land/https/deno.land/x/dactyl/Router.ts) - It is recommended that you use the `Application` to bootstrap, but you can use the `Router`
     class directly. This is a superclass of Oak's router, and exposes additional methods for mapping `Controller` definitions onto routes.
 
+14. [Injectable](https://doc.deno.land/https/deno.land/x/dactyl/injectable.ts) - class decorator to tag service as injectable.
+
 ## Purpose
 
 Deno is the new kid on the block, and Oak seems to be paving the way for an express-like middleware and routing solution with our fancy new runtime. It's only natural that abstractions on top of Oak are born in the near future - much like Nest tucked express middleware and routing under the hood and provided developers with declarative controllers, DI, etc. This project aims to provide a small portion of these features with room to expand in future.
@@ -52,15 +55,15 @@ One caveat is to ensure you have a `tsconfig.json` file enabling `Reflect` and f
 This should result in the following output:
 
 ```
-______           _         _ 
+______           _         _
 |  _  \         | |       | |
 | | | |__ _  ___| |_ _   _| |
 | | | / _` |/ __| __| | | | |
 | |/ / (_| | (__| |_| |_| | |
 |___/ \__,_|\___|\__|\__, |_| FRAMEWORK
-                      __/ |  
-                      |___/   
-  
+                      __/ |
+                      |___/
+
 /dinosaur
   [GET] /
   [GET] /:id
@@ -83,32 +86,27 @@ Controllers are declared with function decorators. This stores metadata that is 
 ```ts
 @Controller("/dinosaur")
 class DinosaurController {
+  constructor(private dinosaurService: DinosaurService) {}
+
   @Get("/")
   @HttpStatus(200)
-  getDinosaurs(@Query("orderBy") orderBy: any, @Query("sort") sort: any) {
-    const dinosaurs: any[] = [
-      { name: "Tyrannosaurus Rex", period: "Maastrichtian" },
-      { name: "Velociraptor", period: "Cretaceous" },
-      { name: "Diplodocus", period: "Oxfordian" },
-    ];
-
-    if (orderBy) {
-      dinosaurs.sort((a: any, b: any) => (a[orderBy] < b[orderBy] ? -1 : 1));
-      if (sort === "desc") dinosaurs.reverse();
-    }
-
+  getDinosaurs(@Query("orderBy") orderBy: string) {
+    const dinosaurs: Array<any> = this.dinosaurService.getAll();
     return {
       message: "Action returning all dinosaurs! Defaults to 200 status!",
       data: dinosaurs,
     };
   }
+
   @Get("/:id")
-  getDinosaurById(@Param("id") id: any, @Header("content-type") contentType: any) {
+  getDinosaurById(@Param("id") id: string, @Header("content-type") contentType: string) {
+    const dinosaur: any = this.dinosaurService.getById(id);
     return {
-      message: `Action returning one dinosaur with id ${id}`,
+      dinosaur,
       ContentType: contentType,
     };
   }
+
   @Post("/")
   createDinosaur(@Body("name") name: any) {
     if (!name) {
@@ -118,23 +116,28 @@ class DinosaurController {
       message: `Created dinosaur with name ${name}`,
     };
   }
+
   @Put("/:id")
   @Before((body: any, params: any) => {
-    if(!body.name || !params.id) throw new BadRequestException('Caught bad request in decorator');
+    if (!body.name || !params.id) {
+      throw new BadRequestException("Caught bad request in decorator");
+    }
   })
-  @Before(async () => 
-    await new Promise((resolve: Function) => 
-      setTimeout((): void => {
-        console.log('Can add async actions here too!');
-        resolve();
-      }, 2000)
-    )
+  @Before(
+    async () =>
+      await new Promise((resolve: Function) =>
+        setTimeout((): void => {
+          console.log("Can add async actions here too!");
+          resolve();
+        }, 2000)
+      )
   )
   updateDinosaur(@Param("id") id: any, @Body() body: any) {
     return {
       message: `Updated name of dinosaur with id ${id} to ${body.name}`,
     };
   }
+
   @Delete("/:id")
   deleteDinosaur(
     @Context() ctx: RouterContext,
@@ -143,13 +146,34 @@ class DinosaurController {
   ) {
     res.status = 404;
     res.body = {
-      msg: `No dinosaur found with id ${ctx.params.id}`
+      msg: `No dinosaur found with id ${ctx.params.id}`,
     };
   }
 }
 
 export default DinosaurController;
+```
 
+`DinosaurService.ts`
+Dactyl supports dependency injection, and injects services via the constructor of Controller (see above). Supplied in the example is a service with scope `SINGLETON`, although `TRANSIENT` and `REQUEST` scopes are also supported. You can read more about dependency injection below.
+
+```ts
+@Injectable(EInjectionScope.SINGLETON)
+export default class DinosaurService {
+  #dinosaurs: Array<any> = [
+    { id: 0, name: "Tyrannosaurus Rex", period: "Maastrichtian" },
+    { id: 1, name: "Velociraptor", period: "Cretaceous" },
+    { id: 2, name: "Diplodocus", period: "Oxfordian" },
+  ];
+
+  getAll(): Array<any> {
+    return this.#dinosaurs;
+  }
+
+  getById(id: string): any {
+    return this.#dinosaurs[parseInt(id, 10)];
+  }
+}
 ```
 
 `index.ts`
@@ -159,9 +183,11 @@ This file bootstraps the web server by registering `DinosaurController` to the `
 import { Application } from "./deps.ts";
 
 import DinosaurController from "./DinosaurController.ts";
+import DinosaurService from "./DinosaurService.ts";
 
 const app: Application = new Application({
   controllers: [DinosaurController],
+  injectables: [DinosaurService],
 });
 
 await app.run(8000);
@@ -180,13 +206,76 @@ const app: Application = new Application({
     cors: false, // true by default
     timing: false, // true by default
     log: false, // true by default
-  }
+  },
 });
 ```
+
 1. `cors` - Enables CORS middleware (`true` by default). This sets the following headers to `*` on `context.response`: `access-control-allow-origin`, `access-control-allow-methods`, `access-control-allow-methods`.
 2. `timing` - Enables timing header middleware (`true` by default). This sets `X-Response-Time` header on `context.response`.
 3. `log` - Enables per-request logging (`true by default`). The message format is: `00:00:00 GMT+0000 (REGION) [GET] - /path/to/endpoint - [200 OK]`
 
+## Dependency Injection
+
+Dactyl uses it's own dependency injection container. You can even access the API for the container itself from the `dependency_container` file exported in `mod.ts`.
+This container supports three scopes: `SINGLETON`, `REQUEST`, and `TRANSIENT`:
+
+`SINGLETON` scoped dependencies are instantiated when the application starts up. When resolved from the container via autoinjection of constructor arguments, you will
+always receive the same instance that's cached in the container. Use `SINGLETON` scope where possible.
+
+`REQUEST` scoped dependencies are instantiated when a new request is received. When the request lifetime ends, the request dependency cache is dumped. If two concurrent
+requests are received by the Dactyl server, both requests will receive their own instance, even if they require the same dependency.
+
+`TRANSIENT` scoped dependencies are instantiated every time they are resolved, meaning every controller or service that consumes a `TRANSIENT` dependency will receive
+it's own instance.
+
+Currently, Dactyl supports only autoinjection of dependencies in the constructor. In order to do this, the following must be done:
+
+1. Tag your service with the `Injectable` class decorator, with the scope you want:
+
+```ts
+@Injectable(EInjectionScope.TRANSIENT)
+class DinosaurService {}
+```
+
+2. Consume your service in the desired controller. It will be resolved by the container based on it's type name:
+
+```ts
+@Controller("/dinosaur")
+class DinosaurController {
+  constructor(private dinosaurService: DinosaurService) {}
+}
+```
+
+3. Supply your `Application` class with the injectable, so that it may register it inside the container:
+
+```ts
+const app: Application = new Application({
+  controllers: [DinosaurController],
+  injectables: [DinosaurService],
+});
+```
+
+And you're all done! `DinosaurService` will be autoinjected into the constructor, with the `TRANSIENT` scope.
+
+### A Note on Scopes
+
+One common design trap for Dependency Injection is parent dependencies depending on services with a _smaller_ scope than their own. For example:
+`Service A (Singleton) -> Service B (Request)`
+Service A is only instantiated once, so how can it depend on a service that is instantiated every request? Some DI implementations will address this
+by making any service that is required by a singleton also a singleton, however this effectively negates the uses for `TRANSIENT` and `REQUEST`.
+
+Instead Dactyl will perform a task (at resolution) to ensure that children dependencies do not decrease in size of scope, ensuring that the three
+scopes are being used properly. The scope size is as follows:
+`Transient -> Request -> Singleton`.
+And so the following is true:
+
+```
+Transient -> Request -> Singleton // will not throw error
+Transient -> Transient // will not throw error
+Request -> Request -> Singleton // will not throw error
+Request -> Transient // will throw error
+Singleton -> Request // will throw error
+```
 
 ## Exceptions
 
