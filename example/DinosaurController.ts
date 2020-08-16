@@ -20,35 +20,31 @@ import {
   OakResponse,
   Before,
 } from "./deps.ts";
+import DinosaurService from "./DinosaurService.ts";
 
 @Controller("/dinosaur")
 class DinosaurController {
+  constructor(private dinosaurService: DinosaurService) {}
+
   @Get("/")
   @HttpStatus(200)
-  getDinosaurs(@Query("orderBy") orderBy: any, @Query("sort") sort: any) {
-    const dinosaurs: any[] = [
-      { name: "Tyrannosaurus Rex", period: "Maastrichtian" },
-      { name: "Velociraptor", period: "Cretaceous" },
-      { name: "Diplodocus", period: "Oxfordian" },
-    ];
-
-    if (orderBy) {
-      dinosaurs.sort((a: any, b: any) => (a[orderBy] < b[orderBy] ? -1 : 1));
-      if (sort === "desc") dinosaurs.reverse();
-    }
-
+  getDinosaurs(@Query("orderBy") orderBy: string) {
+    const dinosaurs: Array<any> = this.dinosaurService.getAll();
     return {
       message: "Action returning all dinosaurs! Defaults to 200 status!",
       data: dinosaurs,
     };
   }
+
   @Get("/:id")
-  getDinosaurById(@Param("id") id: any, @Header("content-type") contentType: any) {
+  getDinosaurById(@Param("id") id: string, @Header("content-type") contentType: string) {
+    const dinosaur: any = this.dinosaurService.getById(id);
     return {
-      message: `Action returning one dinosaur with id ${id}`,
+      dinosaur,
       ContentType: contentType,
     };
   }
+
   @Post("/")
   createDinosaur(@Body("name") name: any) {
     if (!name) {
@@ -58,9 +54,12 @@ class DinosaurController {
       message: `Created dinosaur with name ${name}`,
     };
   }
+
   @Put("/:id")
   @Before((body: any, params: any) => {
-    if (!body.name || !params.id) throw new BadRequestException("Caught bad request in decorator");
+    if (!body.name || !params.id) {
+      throw new BadRequestException("Caught bad request in decorator");
+    }
   })
   @Before(
     async () =>
@@ -76,6 +75,7 @@ class DinosaurController {
       message: `Updated name of dinosaur with id ${id} to ${body.name}`,
     };
   }
+
   @Delete("/:id")
   deleteDinosaur(
     @Context() ctx: RouterContext,

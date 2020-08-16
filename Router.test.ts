@@ -6,7 +6,7 @@ import { assertEquals } from "./deps.ts";
 import { Router } from "./Router.ts";
 import { Controller } from "./Controller.ts";
 import { HttpStatus } from "./HttpStatus.ts";
-
+/*
 function makeMockRequest(endpoint: string): any {
     return {
         request: {
@@ -110,3 +110,5 @@ Deno.test({
         assertEquals(mockContext.response?.status, expectedStatus);
     }
 });
+*/
+// FIX

@@ -1,13 +1,9 @@
-import { Newable, EInjectionScope, DependencyDefinition, RequestLifetime } from "../types.ts";
-import { v4 } from "../deps.ts";
+// Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
-import {
-  INJECTION_ID_META_TOKEN,
-  INJECTION_SCOPE_META_TOKEN,
-  CONSTRUCTOR_TYPE_META_TOKEN,
-} from "./index.ts";
+import { Newable, EInjectionScope, DependencyDefinition, RequestLifetime } from "./types.ts";
+import { v4 } from "./deps.ts";
 
-import { Reflect } from "./reflect-poly.ts";
+import { getConstructorTypes } from "./metadata.ts";
 
 // TODO there is potentially a bug here. I think that
 // Transient services aren't being created every time
@@ -49,8 +45,6 @@ export class DependencyContainer {
    * To it's own "container". You call resolve directly off this m3ethod
    */
   newRequestLifetime(): RequestLifetime {
-    // Store unique ID out of IIFE here so it retains reference.
-    // DANGER this might be a memory leak.
     const requestId: string = v4.generate();
     return (() => {
       this.#requestCache.set(requestId, new Map<string, any>());
@@ -96,6 +90,12 @@ export class DependencyContainer {
     return false;
   };
 
+  /**
+   * Root resolution function.
+   *
+   * Builds a queue of `DependencyDefinitions` in the order they must be resolved.
+   * Accepts requestId, for request scoped dependencies.
+   */
   resolve<T>(key: string, requestId?: string | undefined): T | null {
     const resolutionQueue: Array<DependencyDefinition> = [];
     const rootServiceDefinition: DependencyDefinition | undefined = this.#serviceDefinitions.get(
@@ -104,6 +104,10 @@ export class DependencyContainer {
 
     let ptr = 0;
 
+    /**
+     * Internal helper function to select correct cache. Will throw error if cache
+     * lookup is request scoped, but no request id has been supplied.
+     */
     const _selectCacheFromScope = (scope: EInjectionScope, requestId?: string): any => {
       switch (scope) {
         case EInjectionScope.SINGLETON:
@@ -120,19 +124,13 @@ export class DependencyContainer {
       }
     };
 
+    /**
+     * Internal process queue function
+     */
     const _processQueue = (): any => {
-      console.log("Received queue:", resolutionQueue);
-      // TODO do a size check here. Remember, a requests scope can only
-      // increase or stay the same in a dependency tree, so:
-      // Request -> Request -> Singleton is allowed
-      // Singleton -> Request is invalid
-      // Singleton -> Transient is invalid
-      // Transient -> Singleton is valid
-      // Transient -> Request -> Singleton is valid
-      // Request -> Transient -> Singleton is invalid
-
       let instance: any;
-
+      // Cache transient local dependencies here. They are not cached
+      // in the container so we do this here instead.
       const transientLocalCache: Map<string, any> = new Map<string, any>();
 
       while (resolutionQueue.length) {
@@ -145,13 +143,18 @@ export class DependencyContainer {
           parentScope,
           requestId
         );
-        // Will always be false for transient dependencies
+
+        // If cached, no need to resolve it's children. Skip this dependency and move
+        // onto the next dependency.
         if (parentCache?.has(key)) continue;
 
+        // Get children dependencies here. If any decrease in scope (Request -> Transient)
+        // then throw an error
         const childDepDefinitions: Array<DependencyDefinition> = (
-          Reflect.getMetadata(CONSTRUCTOR_TYPE_META_TOKEN, dep.newable) ?? []
-        ).map(({ name }: { name: string }): DependencyDefinition | undefined =>
-          this.#serviceDefinitions.get(name)
+          getConstructorTypes(dep.newable) ?? []
+        ).map(
+          ({ name }: { name: string }): DependencyDefinition =>
+            <DependencyDefinition>this.#serviceDefinitions.get(name)
         );
 
         if (this.#childHasSmallerScope(parentScope, childDepDefinitions)) {
@@ -162,7 +165,6 @@ export class DependencyContainer {
           );
         }
 
-        // TODO check for null values here in childDepDefinitions
         const resolvedChildren: Array<any> = [];
         // Queue is read backwards, so any parent with child dependencies
         // will get them from cache
@@ -197,24 +199,33 @@ export class DependencyContainer {
       return instance;
     };
 
-    const _resolve = (serviceDefinition: DependencyDefinition): any => {
-      console.log("New resolution discover iteration", serviceDefinition);
+    const _resolve = (serviceDefinition: DependencyDefinition | undefined): any => {
+      if (!serviceDefinition) {
+        throw new Error("A non registered dependency was attempted to be resolved.");
+      }
+      // Maximum resolution size. This is a bandaid solution
+      // and a proper circular dependency solution needs to
+      // be implemented
+      if (ptr >= 512) {
+        throw new Error(
+          `Circular dependency detected, origin of key: ${serviceDefinition.newable.name}`
+        );
+      }
       if (serviceDefinition === rootServiceDefinition) {
         resolutionQueue.push(serviceDefinition);
       }
 
-      const childDeps =
-        Reflect.getMetadata(CONSTRUCTOR_TYPE_META_TOKEN, serviceDefinition.newable) ?? [];
+      const childDeps: Array<Function> = getConstructorTypes(serviceDefinition.newable) ?? [];
 
       const childDefinitions: Array<DependencyDefinition> = childDeps.map(
-        ({ name }: { name: string }) => this.#serviceDefinitions.get(name)
+        ({ name }: { name: string }) => <DependencyDefinition>this.#serviceDefinitions.get(name)
       );
 
       // TODO check for null here i.e. non registered service
       // We grabbed this straight fgrom constructor, what if
       // one arg is not wanting to be injected?
       resolutionQueue.push(...childDefinitions);
-      console.log("Adding to resolution queue", childDefinitions);
+
       ptr++;
       if (ptr === resolutionQueue.length) {
         return _processQueue();

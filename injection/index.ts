@@ -1,23 +1,7 @@
-import { Reflect } from "./reflect-poly.ts";
 import { EInjectionScope, Newable, RequestLifetime } from "../types.ts";
-import { DependencyContainer } from "./DependencyContainer.ts";
-import { v4 } from "../deps.ts";
-
-export const INJECTION_SCOPE_META_TOKEN: Symbol = Symbol("dactyl:injection_scope");
-export const INJECTION_ID_META_TOKEN: Symbol = Symbol("dactyl:consumer_id");
-export const CONSTRUCTOR_TYPE_META_TOKEN: string = "design:paramtypes";
-
-function Controller(prefix: string) {
-  return function (target: any): void {
-    // This seems to be necessary to have metadata assigned to paramtypes?
-  };
-}
-
-function Injectable(scope: EInjectionScope) {
-  return function (target: any) {
-    Reflect.defineMetadata(INJECTION_SCOPE_META_TOKEN, scope, target);
-  };
-}
+import { DependencyContainer } from "../dependency_container.ts";
+import { Injectable } from "../injectable.ts";
+import { getInjectableMetadata } from "../metadata.ts";
 
 // USER CODE
 
@@ -110,7 +94,7 @@ const container: DependencyContainer = new DependencyContainer();
 // Boring Reflection stuff here.
 const newables: Array<Newable<any>> = [/*SingletonService,*/ RootService, A, B, C, D, E];
 for (const newable of newables) {
-  const scope: EInjectionScope = Reflect.getMetadata(INJECTION_SCOPE_META_TOKEN, newable);
+  const scope: EInjectionScope = getInjectableMetadata(newable);
   container.register(newable, scope, newable.name);
 }
 //container.instantiateAllSingletons();

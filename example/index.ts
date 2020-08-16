@@ -3,9 +3,11 @@
 import { Application } from "./deps.ts";
 
 import DinosaurController from "./DinosaurController.ts";
+import DinosaurService from "./DinosaurService.ts";
 
 const app: Application = new Application({
   controllers: [DinosaurController],
+  injectables: [DinosaurService],
 });
 const PORT = 8000;
 

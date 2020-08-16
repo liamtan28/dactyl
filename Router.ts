@@ -7,6 +7,7 @@ import { ExecutionContainer } from "./execution_container.ts";
 
 import { RouterContext } from "./deps.ts";
 import { getControllerOwnMeta } from "./metadata.ts";
+import { DependencyContainer } from "./dependency_container.ts";
 
 /**
  * Router subclass - abstraction on top of `Router` class from Oak.
@@ -27,10 +28,22 @@ ______           _         _
   `;
   #bootstrapMsg: string;
 
-  public constructor() {
+  #executionMapping: Map<string, ExecutionContainer<any>>;
+
+  #dependencyContainer: DependencyContainer;
+
+  constructor(dependencyContainer: DependencyContainer) {
     super();
     this.#bootstrapMsg = this.#LOGO_ASCII + "\n";
+    this.#executionMapping = new Map<string, ExecutionContainer<any>>();
+    this.#dependencyContainer = dependencyContainer;
   }
+
+  /** Getter for execution mapping. used for testing. */
+  get executionMapping(): Map<string, ExecutionContainer<any>> {
+    return this.#executionMapping;
+  }
+
   /**
    * Register function consumed by `Application`, takes controller
    * class definition and strips it's metadata. From this metadata,
@@ -58,17 +71,18 @@ ______           _         _
 
     meta.routes.forEach((route: RouteDefinition): void => {
       this.#appendToBootstrapMsg(`  [${route.requestMethod.toUpperCase()}] ${route.path}\n`);
-      const path: string = this.#normalizedPath(meta.prefix as string, route.path);
-
+      const path: string = this.#normalizedPath(String(meta.prefix), route.path);
       // Bind execution container to path in Oak
-      (this[route.requestMethod] as Function)(
+      (<Function>this[route.requestMethod])(
         path,
         async (context: RouterContext): Promise<void> => {
           const container: ExecutionContainer<any> = new ExecutionContainer<any>(
             controller,
             route,
-            context
+            context,
+            this.#dependencyContainer
           );
+          this.#executionMapping.set(String(route.methodName), container);
           const result: ExecutionResult = await container.execute();
 
           context.response.body = result.body;
