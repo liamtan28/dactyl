@@ -253,3 +253,8 @@ export class DependencyContainer {
     }
   }
 }
+
+// Freeze and export as singleton
+const containerSingleton: DependencyContainer = new DependencyContainer();
+Object.freeze(containerSingleton);
+export default containerSingleton;

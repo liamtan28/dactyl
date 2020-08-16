@@ -13,26 +13,17 @@ import {
 } from "./types.ts";
 import { getControllerOwnMeta, getConstructorTypes } from "./metadata.ts";
 import { HttpException, InternalServerErrorException } from "./HttpException.ts";
-import { DependencyContainer } from "./dependency_container.ts";
+import DIContainer from "./dependency_container.ts";
 
 /** class that executes a controller action with context */
 export class ExecutionContainer<T> {
   #controllerDefinition: Newable<T>;
   #controllerMeta: ControllerMetadata;
-
-  #dependencyContainer: DependencyContainer;
-
   #route: RouteDefinition;
   #context: RouterContext;
 
-  constructor(
-    controllerDefinition: Newable<T>,
-    route: RouteDefinition,
-    context: RouterContext,
-    dependencyContainer: DependencyContainer
-  ) {
+  constructor(controllerDefinition: Newable<T>, route: RouteDefinition, context: RouterContext) {
     this.#controllerDefinition = controllerDefinition;
-    this.#dependencyContainer = dependencyContainer;
     this.#route = route;
 
     this.#context = context;
@@ -158,7 +149,7 @@ export class ExecutionContainer<T> {
       status: Status.OK,
     };
 
-    const lifetime: RequestLifetime = this.#dependencyContainer.newRequestLifetime();
+    const lifetime: RequestLifetime = DIContainer.newRequestLifetime();
 
     // Using the controller metadata and data from context, build controller args
     const args: Array<any> = await this.#buildRouteArgumentsFromMeta();

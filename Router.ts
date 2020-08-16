@@ -30,13 +30,10 @@ ______           _         _
 
   #executionMapping: Map<string, ExecutionContainer<any>>;
 
-  #dependencyContainer: DependencyContainer;
-
-  constructor(dependencyContainer: DependencyContainer) {
+  constructor() {
     super();
     this.#bootstrapMsg = this.#LOGO_ASCII + "\n";
     this.#executionMapping = new Map<string, ExecutionContainer<any>>();
-    this.#dependencyContainer = dependencyContainer;
   }
 
   /** Getter for execution mapping. used for testing. */
@@ -68,7 +65,6 @@ ______           _         _
     }
 
     this.#appendToBootstrapMsg(`${meta.prefix}\n`);
-
     meta.routes.forEach((route: RouteDefinition): void => {
       this.#appendToBootstrapMsg(`  [${route.requestMethod.toUpperCase()}] ${route.path}\n`);
       const path: string = this.#normalizedPath(String(meta.prefix), route.path);
@@ -79,8 +75,7 @@ ______           _         _
           const container: ExecutionContainer<any> = new ExecutionContainer<any>(
             controller,
             route,
-            context,
-            this.#dependencyContainer
+            context
           );
           this.#executionMapping.set(String(route.methodName), container);
           const result: ExecutionResult = await container.execute();

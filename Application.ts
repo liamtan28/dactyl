@@ -15,7 +15,7 @@ import {
 
 import { Router } from "./Router.ts";
 import { ApplicationConfig, EInjectionScope } from "./types.ts";
-import { DependencyContainer } from "./dependency_container.ts";
+import DIContainer from "./dependency_container.ts";
 import { getInjectableMetadata } from "./metadata.ts";
 
 /**
@@ -24,22 +24,19 @@ import { getInjectableMetadata } from "./metadata.ts";
  */
 export class Application {
   #router: Router;
-  #dependencyContainer: DependencyContainer;
   #app: OakApplication;
 
   public constructor(appConfig: ApplicationConfig) {
     const config: ApplicationConfig["config"] = appConfig.config ?? {};
     const { log = true, timing = true, cors = true }: any = config;
 
-    this.#dependencyContainer = new DependencyContainer();
-
     for (const newable of appConfig.injectables) {
       const scope: EInjectionScope = getInjectableMetadata(newable);
-      this.#dependencyContainer.register(newable, scope, newable.name);
+      DIContainer.register(newable, scope, newable.name);
     }
-    this.#dependencyContainer.instantiateAllSingletons();
+    DIContainer.instantiateAllSingletons();
 
-    this.#router = new Router(this.#dependencyContainer);
+    this.#router = new Router();
     this.#app = new OakApplication();
 
     for (const controller of appConfig.controllers) {
