@@ -12,6 +12,11 @@ import { getConstructorTypes } from "./metadata.ts";
 // same transient is required in the one resolution
 // tree, it will be the same instance.
 
+// TODO another bug is that errors will be thrown
+// on request, not on startup (unless the dep is
+// singleton). This will be a poor user
+// experience
+
 /**
  * `DependencyContainer`, used to register and resolve injected dependencies
  */
