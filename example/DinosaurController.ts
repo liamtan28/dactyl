@@ -20,12 +20,11 @@ import {
   OakResponse,
   Before,
   Inject,
-  AutoInject,
 } from "./deps.ts";
 import DinosaurService from "./DinosaurService.ts";
+import { EInjectionScope } from "../types.ts";
 
-@Controller("/dinosaur")
-@AutoInject()
+@Controller("/dinosaur", EInjectionScope.REQUEST)
 class DinosaurController {
   constructor(private dinosaurService: DinosaurService) {}
 

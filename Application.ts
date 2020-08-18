@@ -14,9 +14,9 @@ import {
 } from "./deps.ts";
 
 import { Router } from "./Router.ts";
-import { ApplicationConfig, EInjectionScope } from "./types.ts";
+import { ApplicationConfig, EInjectionScope, ControllerMetadata } from "./types.ts";
 import DIContainer from "./dependency_container.ts";
-import { getInjectableMetadata } from "./metadata.ts";
+import { getInjectableMetadata, getControllerOwnMeta } from "./metadata.ts";
 
 /**
  * Bootstrap class responsible for registering controllers
@@ -34,7 +34,14 @@ export class Application {
       const scope: EInjectionScope = getInjectableMetadata(newable);
       DIContainer.register(newable, scope, newable.name);
     }
-    DIContainer.instantiateAllSingletons();
+    for (const controller of appConfig.controllers) {
+      const meta: ControllerMetadata | undefined = getControllerOwnMeta(controller);
+
+      if (!meta) {
+        throw new Error("Attempted to register non-controller class");
+      }
+      DIContainer.register(controller, meta.scope, controller.name);
+    }
 
     this.#router = new Router();
     this.#app = new OakApplication();
@@ -126,6 +133,7 @@ export class Application {
     const bootstrapMsg: string = this.#router.getBootstrapMsg();
     console.log(blue(bootstrapMsg));
     console.info(bgBlue(`Dactyl running - please visit http://localhost:${port}/`));
+    DIContainer.instantiateAllSingletons();
     this.#app.listen({ port });
   }
 }

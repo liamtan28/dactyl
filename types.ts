@@ -34,11 +34,11 @@ export enum ArgsType {
  */
 export interface ControllerMetadata {
   prefix: string | null;
+  scope: EInjectionScope;
   routes: Map<string | Symbol, RouteDefinition>;
   defaultResponseCodes: Map<string | Symbol, number>;
   args: RouteArgument[];
   beforeFns: Map<string, Array<Function>>;
-  autoInject: boolean;
 }
 
 /**

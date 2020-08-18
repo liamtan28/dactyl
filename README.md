@@ -36,10 +36,7 @@ _For following - [Arg.ts](https://doc.deno.land/https/deno.land/x/dactyl/Arg.ts)
 14. [Router.ts](https://doc.deno.land/https/deno.land/x/dactyl/Router.ts) - It is recommended that you use the `Application` to bootstrap, but you can use the `Router`
     class directly. This is a superclass of Oak's router, and exposes additional methods for mapping `Controller` definitions onto routes.
 
-_For following - [Injectable.ts](https://doc.deno.land/https/deno.land/x/dactyl/injectable.ts)_
-
-15. `@Injectable` - tag a service as injectable. Supply a scope, e.g. `@Injectable(EInjectionScope.SINGLETON)`
-16. `@AutoInject` - tag a controller to use auto-injection of constructor params.
+15. [Injectable.ts](https://doc.deno.land/https/deno.land/x/dactyl/injectable.ts) - tag a service as injectable. Supply a scope, e.g. `@Injectable(EInjectionScope.SINGLETON)`
 
 ## Purpose
 
@@ -94,8 +91,7 @@ In the above example project, there exists one `Controller` and a bootstrapping 
 Controllers are declared with function decorators. This stores metadata that is consumed on bootstrap and converted into route definitions that Oak can understand.
 
 ```ts
-@Controller("/dinosaur")
-@AutoInject()
+@Controller("/dinosaur", EInjectionScope.SINGLETON)
 class DinosaurController {
   constructor(private dinosaurService: DinosaurService) {}
 
@@ -259,15 +255,14 @@ Currently, Dactyl supports autoinjection of dependencies in the constructor, and
 1. Tag your service with the `Injectable` class decorator, with the scope you want:
 
 ```ts
-@Injectable(EInjectionScope.TRANSIENT)
+@Injectable(EInjectionScope.SINGLETON)
 class DinosaurService {}
 ```
 
 2. Consume your service in the desired controller. It will be resolved by the container based on it's type name. Be sure to tage the class with the `@AutoInject` decorator to auto inject constructor params.
 
 ```ts
-@Controller("/dinosaur")
-@AutoInject()
+@Controller("/dinosaur", EInjectionScope.REQUEST)
 class DinosaurController {
   constructor(private dinosaurService: DinosaurService) {}
 }
@@ -283,6 +278,11 @@ const app: Application = new Application({
 ```
 
 And you're all done! `DinosaurService` will be autoinjected into the constructor, with the `TRANSIENT` scope.
+
+### Controller scopes
+
+Controllers are treated as any other dependency, meaning they can be scoped (`TRANSIENT`, `REQUEST`, `SINGLETON`). Controllers are `REQUEST` scoped by default. It should be noted that `REQUEST` and `TRANSIENT` scoped controllers are effectively
+the same scope, as controllers are only created once per request for both `REQUEST` and `TRANSIENT`.
 
 ### A Note on Scopes
 
@@ -303,6 +303,10 @@ Request -> Request -> Singleton // will not throw error
 Request -> Transient // will throw error
 Singleton -> Request // will throw error
 ```
+
+The same is true for controllers, by the way. Attempting the injection of `TRANSIENT` or `REQUEST` services into a `SINGLETON` controller will result in an error.
+
+We recommend you use `SINGLETON` scope always as those services are only ever resolved once, when `Application.run()` is called.
 
 ## Exceptions
 

@@ -64,10 +64,10 @@ export function setControllerMeta(target: Object, value: ControllerMetadata): vo
 export function defaultMetadata(): ControllerMetadata {
   return {
     prefix: null,
+    scope: EInjectionScope.REQUEST,
     routes: new Map<string, RouteDefinition>(),
     args: [],
     defaultResponseCodes: new Map<string, number>(),
     beforeFns: new Map<string, Array<Function>>(),
-    autoInject: false,
   };
 }

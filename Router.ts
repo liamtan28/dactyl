@@ -1,13 +1,20 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
 import { Router as OakRouter, Middleware } from "./deps.ts";
-import { RouteDefinition, ControllerMetadata, Newable, ExecutionResult } from "./types.ts";
+import {
+  RouteDefinition,
+  ControllerMetadata,
+  Newable,
+  ExecutionResult,
+  EInjectionScope,
+  RequestLifetime,
+} from "./types.ts";
 
 import { ExecutionContainer } from "./execution_container.ts";
 
 import { RouterContext } from "./deps.ts";
 import { getControllerOwnMeta } from "./metadata.ts";
-import { Route } from "https://deno.land/x/oak@v6.0.1/router.ts";
+import DIContainer from "./dependency_container.ts";
 /**
  * Router subclass - abstraction on top of `Router` class from Oak.
  *
@@ -64,7 +71,7 @@ ______           _         _
     const { prefix, routes }: ControllerMetadata = meta;
 
     // An execution container is made for each controller.
-    const container: ExecutionContainer<any> = new ExecutionContainer<any>(controller);
+    const container: ExecutionContainer<any> = new ExecutionContainer<any>(meta, controller.name);
     this.#containerCache.set(String(prefix), container);
 
     this.#appendToBootstrapMsg(`${prefix}\n`);

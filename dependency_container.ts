@@ -62,6 +62,7 @@ export class DependencyContainer {
   }
   endRequestLifetime(requestId: string) {
     this.#requestCache.get(requestId)?.clear();
+    this.#requestCache.delete(requestId);
   }
 
   /**
@@ -148,10 +149,9 @@ export class DependencyContainer {
           parentScope,
           requestId
         );
-
         // If cached, no need to resolve it's children. Skip this dependency and move
         // onto the next dependency.
-        if (parentCache?.has(key)) continue;
+        if (parentCache?.has(parentKey)) continue;
 
         // Get children dependencies here. If any decrease in scope (Request -> Transient)
         // then throw an error
@@ -241,7 +241,6 @@ export class DependencyContainer {
     if (!rootServiceDefinition) return null;
 
     const cache: Map<string, any> = _selectCacheFromScope(rootServiceDefinition.scope, requestId);
-
     return cache?.get(key) ?? _resolve(rootServiceDefinition);
   }
 

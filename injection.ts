@@ -17,14 +17,3 @@ export function Injectable(scope: EInjectionScope) {
     setInjectableMetadata(target, scope);
   };
 }
-/**
- * Curried function responsible for setting autoinject
- * property to true on controllers
- */
-export function AutoInject() {
-  return (target: Function): void => {
-    const meta: ControllerMetadata = getControllerOwnMeta(target) ?? defaultMetadata();
-    meta.autoInject = true;
-    setControllerOwnMeta(target, meta);
-  };
-}

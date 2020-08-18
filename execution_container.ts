@@ -17,12 +17,11 @@ import DIContainer from "./dependency_container.ts";
 
 /** class that executes a controller action with context */
 export class ExecutionContainer<T> {
-  #controllerDefinition: Newable<T>;
   #controllerMeta: ControllerMetadata;
-
-  constructor(controllerDefinition: Newable<T>) {
-    this.#controllerDefinition = controllerDefinition;
-    this.#controllerMeta = <ControllerMetadata>getControllerOwnMeta(this.#controllerDefinition);
+  #key: string;
+  constructor(meta: ControllerMetadata, key: string) {
+    this.#controllerMeta = meta;
+    this.#key = key;
   }
 
   #retrieveFromContext = async (
@@ -165,19 +164,7 @@ export class ExecutionContainer<T> {
     }
 
     try {
-      const autoInject: boolean = this.#controllerMeta.autoInject;
-      const resolvedDependencies: Array<any> = [];
-      if (autoInject) {
-        // Resolve dependencies from container and construct controller
-        const types: Array<string> = getConstructorTypes(this.#controllerDefinition).map(
-          (type: any): string => type.name
-        );
-        for (const type of types) {
-          resolvedDependencies.push(lifetime.resolve(type));
-        }
-      }
-
-      const instance: any = new this.#controllerDefinition(...resolvedDependencies);
+      const instance = lifetime.resolve(this.#key);
 
       // execute action here.
       const controllerResponse: any = await instance[route.methodName as string](...args);
