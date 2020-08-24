@@ -18,6 +18,8 @@ import { ApplicationConfig, EInjectionScope, ControllerMetadata } from "./types.
 import DIContainer from "./dependency_container.ts";
 import { getInjectableMetadata, getControllerOwnMeta } from "./metadata.ts";
 
+import { logger, cors as corsMiddleware, timing as timingMiddleware } from "./middleware.ts";
+
 /**
  * Bootstrap class responsible for registering controllers
  * onto Router, and starting the Oak webserver
@@ -30,13 +32,13 @@ export class Application {
     const config: ApplicationConfig["config"] = appConfig.config ?? {};
     const { log = true, timing = true, cors = true }: any = config;
 
+    // register injectables and controllers into `DIContainer` singleton
     for (const newable of appConfig.injectables) {
       const scope: EInjectionScope = getInjectableMetadata(newable);
       DIContainer.register(newable, scope, newable.name);
     }
     for (const controller of appConfig.controllers) {
       const meta: ControllerMetadata | undefined = getControllerOwnMeta(controller);
-
       if (!meta) {
         throw new Error("Attempted to register non-controller class");
       }
@@ -50,66 +52,16 @@ export class Application {
       this.#router.register(controller);
     }
 
-    if (cors) this.#app.use(this.cors);
-    if (timing) this.#app.use(this.timing);
-    if (log) this.#app.use(this.logger);
+    if (cors) this.#app.use(corsMiddleware);
+    if (timing) this.#app.use(timingMiddleware);
+    if (log) this.#app.use(logger);
 
     // apply routes
     this.#app.use(this.#router.middleware());
     // if routes passes through, handle not found with 404 response.
     this.#app.use(this.handleNotFound);
   }
-  /**
-   * Timing middleware, will be enabled in constructor if `appConfig.timing`
-   * is `true`
-   */
-  private async timing(context: Context, next: Function): Promise<void> {
-    const start: number = Date.now();
-    await next();
-    const ms: number = Date.now() - start;
-    context.response.headers.set("X-Response-Time", `${ms}ms`);
-  }
-  /**
-   * Logger middleware, will be enabled in constructor if `appConfig.log`
-   * is `true`
-   */
-  private async logger(context: Context, next: Function): Promise<void> {
-    const method: string = context.request.method;
-    const urlRaw: URL = context.request.url;
-    const date: string = new Date().toTimeString();
-    await next();
-    const status: Status = context.response.status ?? Status.OK;
-    let colorFn: Function = green;
-    const statusPrefix: string = status.toString()[0];
-    if (statusPrefix === "3") colorFn = yellow;
-    else if (statusPrefix === "4" || statusPrefix === "5") colorFn = red;
 
-    console.info(
-      `${date} [${method.toUpperCase()}] - ${urlRaw.pathname} - ${colorFn(
-        `[${status} ${STATUS_TEXT.get(status)}]`
-      )}`
-    );
-  }
-  /**
-   * CORS middleware, will be enabled in constructor if `appConfig.cors`
-   * is `true`
-   */
-  private async cors(context: Context, next: Function): Promise<void> {
-    context.response.headers.set(
-      "Access-Control-Allow-Origin",
-      context.request.headers.get("Origin") || "*"
-    );
-    context.response.headers.set(
-      "Access-Control-Allow-Methods",
-      context.request.headers.get("Access-Control-Request-Method") || "*"
-    );
-    context.response.headers.set(
-      "Access-Control-Allow-Headers",
-      context.request.headers.get("Access-Control-Request-Headers") || "*"
-    );
-
-    await next();
-  }
   /**
    * 404 middleware, enabled by default and not disableable
    */

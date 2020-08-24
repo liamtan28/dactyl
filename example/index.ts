@@ -9,6 +9,7 @@ const app: Application = new Application({
   controllers: [DinosaurController],
   injectables: [DinosaurService],
 });
+
 const PORT = 8000;
 
 await app.run(PORT);
