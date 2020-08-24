@@ -10,6 +10,8 @@ const app: Application = new Application({
   injectables: [DinosaurService],
 });
 
+app.useLogger().useCors().useTiming();
+
 const PORT = 8000;
 
 await app.run(PORT);

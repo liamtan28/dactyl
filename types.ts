@@ -75,11 +75,6 @@ export interface BeforeDefinition {
 export interface ApplicationConfig {
   controllers: Array<Newable<any>>;
   injectables: Array<Newable<any>>;
-  config?: {
-    timing?: boolean;
-    log?: boolean;
-    cors?: boolean;
-  };
 }
 /**
  * Definition for a class.

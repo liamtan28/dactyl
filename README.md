@@ -219,22 +219,24 @@ And away we go. This spins up a web server using oak with the appropriately regi
 
 ## Configuration
 
-There is additional configuration that you can pass to the application upon bootstrap:
+There is additional configuration that you can pass to the application upon bootstrap using builder pattern:
 
 ```ts
 const app: Application = new Application({
   controllers: [DinosaurController],
-  config: {
-    cors: false, // true by default
-    timing: false, // true by default
-    log: false, // true by default
-  },
+  injectables: [DinosaurService],
 });
+
+app.useLogger().useCors().useTiming();
+
+const PORT = 8000;
+
+await app.run(PORT);
 ```
 
-1. `cors` - Enables CORS middleware (`true` by default). This sets the following headers to `*` on `context.response`: `access-control-allow-origin`, `access-control-allow-methods`, `access-control-allow-methods`.
-2. `timing` - Enables timing header middleware (`true` by default). This sets `X-Response-Time` header on `context.response`.
-3. `log` - Enables per-request logging (`true by default`). The message format is: `00:00:00 GMT+0000 (REGION) [GET] - /path/to/endpoint - [200 OK]`
+1. `useCors` - Enables CORS middleware. This sets the following headers to `*` on `context.response`: `access-control-allow-origin`, `access-control-allow-methods`, `access-control-allow-methods`.
+2. `useTiming` - Enables timing header middleware. This sets `X-Response-Time` header on `context.response`.
+3. `useLogger` - Enables per-request logging. The message format is: `00:00:00 GMT+0000 (REGION) [GET] - /path/to/endpoint - [200 OK]`
 
 ## Dependency Injection
 

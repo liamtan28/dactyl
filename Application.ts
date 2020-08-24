@@ -1,24 +1,13 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
-import {
-  Application as OakApplication,
-  Response,
-  Status,
-  STATUS_TEXT,
-  Context,
-  red,
-  yellow,
-  green,
-  blue,
-  bgBlue,
-} from "./deps.ts";
+import { Application as OakApplication, Response, Context, blue, bgBlue } from "./deps.ts";
 
 import { Router } from "./Router.ts";
 import { ApplicationConfig, EInjectionScope, ControllerMetadata } from "./types.ts";
 import DIContainer from "./dependency_container.ts";
 import { getInjectableMetadata, getControllerOwnMeta } from "./metadata.ts";
 
-import { logger, cors as corsMiddleware, timing as timingMiddleware } from "./middleware.ts";
+import { logger, cors, timing } from "./middleware.ts";
 
 /**
  * Bootstrap class responsible for registering controllers
@@ -28,10 +17,9 @@ export class Application {
   #router: Router;
   #app: OakApplication;
 
-  public constructor(appConfig: ApplicationConfig) {
-    const config: ApplicationConfig["config"] = appConfig.config ?? {};
-    const { log = true, timing = true, cors = true }: any = config;
+  #middleware: Array<Function>;
 
+  public constructor(appConfig: ApplicationConfig) {
     // register injectables and controllers into `DIContainer` singleton
     for (const newable of appConfig.injectables) {
       const scope: EInjectionScope = getInjectableMetadata(newable);
@@ -51,15 +39,32 @@ export class Application {
     for (const controller of appConfig.controllers) {
       this.#router.register(controller);
     }
+    this.#middleware = [];
+  }
 
-    if (cors) this.#app.use(corsMiddleware);
-    if (timing) this.#app.use(timingMiddleware);
-    if (log) this.#app.use(logger);
-
-    // apply routes
-    this.#app.use(this.#router.middleware());
-    // if routes passes through, handle not found with 404 response.
-    this.#app.use(this.handleNotFound);
+  /**
+   * Function for user to add `logger` middleware. Builder
+   * pattern so returns ref to `this`
+   */
+  public useLogger(): Application {
+    this.#middleware.push(logger);
+    return this;
+  }
+  /**
+   * Function for user to add `timing` middleware. Builder
+   * pattern so returns ref to `this`
+   */
+  public useTiming(): Application {
+    this.#middleware.push(timing);
+    return this;
+  }
+  /**
+   * Function for user to add `cors` middleware. Builder
+   * pattern so returns ref to `this`
+   */
+  public useCors(): Application {
+    this.#middleware.push(cors);
+    return this;
   }
 
   /**
@@ -82,6 +87,13 @@ export class Application {
    * an argument.
    */
   public async run(port: number): Promise<void> {
+    this.#middleware.forEach((middleware: any): any => this.#app.use(middleware));
+
+    // apply routes
+    this.#app.use(this.#router.middleware());
+    // if routes passes through, handle not found with 404 response.
+    this.#app.use(this.handleNotFound);
+
     const bootstrapMsg: string = this.#router.getBootstrapMsg();
     console.log(blue(bootstrapMsg));
     console.info(bgBlue(`Dactyl running - please visit http://localhost:${port}/`));
