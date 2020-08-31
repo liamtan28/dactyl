@@ -8,7 +8,7 @@ import {
   RouteArgument,
   RequestLifetime,
 } from "./types.ts";
-import { HttpException, InternalServerErrorException } from "./HttpException.ts";
+import { HttpException, InternalServerErrorException } from "./http_exception.ts";
 import DIContainer from "./dependency_container.ts";
 
 import * as transform from "./transform.ts";

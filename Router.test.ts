@@ -1,11 +1,11 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
-import { Get, Post } from "./Method.ts";
+import { Get, Post } from "./method.ts";
 import { ControllerCallback } from "./types.ts";
 import { assertEquals } from "./deps.ts";
-import { Router } from "./Router.ts";
-import { Controller } from "./Controller.ts";
-import { HttpStatus } from "./HttpStatus.ts";
+import { Router } from "./router.ts";
+import { Controller } from "./controller.ts";
+import { HttpStatus } from "./http_status.ts";
 /*
 function makeMockRequest(endpoint: string): any {
     return {

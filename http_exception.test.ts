@@ -20,7 +20,7 @@ import {
   BadGatewayException,
   ServiceUnavailableException,
   GatewayTimeoutException,
-} from "./HttpException.ts";
+} from "./http_exception.ts";
 import { Newable } from "./types.ts";
 
 Deno.test({
@@ -28,14 +28,8 @@ Deno.test({
   fn() {
     const testStatus: Status = Status.Teapot;
     const testMsg: string = "testMessage";
-    const testException: HttpException = new HttpException(
-      testStatus,
-      testMsg,
-    );
-    assertEquals(
-      testException.getError(),
-      { error: testMsg, status: testStatus },
-    );
+    const testException: HttpException = new HttpException(testStatus, testMsg);
+    assertEquals(testException.getError(), { error: testMsg, status: testStatus });
   },
 });
 /**
@@ -136,8 +130,7 @@ const testData: Array<{
 
 for (const testDataItem of testData) {
   Deno.test({
-    name:
-      `${testDataItem.name} should return error with status ${testDataItem.status}`,
+    name: `${testDataItem.name} should return error with status ${testDataItem.status}`,
     fn() {
       const instance: HttpException = new testDataItem.exception();
       assertEquals(instance.getError(), {

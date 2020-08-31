@@ -2,7 +2,7 @@
 
 import { Application as OakApplication, Response, Context, blue, bgBlue } from "./deps.ts";
 
-import { Router } from "./Router.ts";
+import { Router } from "./router.ts";
 import { ApplicationConfig, EInjectionScope, ControllerMetadata } from "./types.ts";
 import DIContainer from "./dependency_container.ts";
 import { getInjectableMetadata, getControllerOwnMeta } from "./metadata.ts";
