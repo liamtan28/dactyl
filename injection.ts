@@ -1,12 +1,7 @@
 // Copyright 2020 Liam Tan. All rights reserved. MIT license.
 
-import {
-  setInjectableMetadata,
-  getControllerOwnMeta,
-  defaultMetadata,
-  setControllerOwnMeta,
-} from "./metadata.ts";
-import { EInjectionScope, ControllerMetadata } from "./types.ts";
+import { setInjectableMetadata } from "./metadata.ts";
+import { EInjectionScope } from "./types.ts";
 
 /**
  * Curried function responsible for setting injectable
