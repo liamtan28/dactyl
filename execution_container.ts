@@ -60,7 +60,7 @@ export class ExecutionContainer<T> {
       const instance = lifetime.resolve(this.#key);
 
       // execute action here.
-      const controllerResponse: any = await instance[route.methodName as string](...args);
+      const controllerResponse: any = await instance[String(route.methodName)](...args);
 
       // Body has manually been set
       if (!controllerResponse && context.response.body) {
