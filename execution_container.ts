@@ -14,7 +14,7 @@ import DIContainer from "./dependency_container.ts";
 import * as transform from "./transform.ts";
 
 /** class that executes a controller action with context */
-export class ExecutionContainer<T> {
+export class ExecutionContainer {
   #controllerMeta: ControllerMetadata;
   #key: string;
   constructor(meta: ControllerMetadata, key: string) {

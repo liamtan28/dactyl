@@ -34,15 +34,15 @@ ______           _         _
   `;
   #bootstrapMsg: string;
 
-  #containerCache: Map<string, ExecutionContainer<any>>;
+  #containerCache: Map<string, ExecutionContainer>;
 
   constructor() {
     super();
     this.#bootstrapMsg = this.#LOGO_ASCII + "\n";
-    this.#containerCache = new Map<string, ExecutionContainer<any>>();
+    this.#containerCache = new Map<string, ExecutionContainer>();
   }
 
-  get containerCache(): Map<string, ExecutionContainer<any>> {
+  get containerCache(): Map<string, ExecutionContainer> {
     return this.#containerCache;
   }
 
@@ -71,7 +71,7 @@ ______           _         _
     const { prefix, routes }: ControllerMetadata = meta;
 
     // An execution container is made for each controller.
-    const container: ExecutionContainer<any> = new ExecutionContainer<any>(meta, controller.name);
+    const container: ExecutionContainer = new ExecutionContainer(meta, controller.name);
     this.#containerCache.set(String(prefix), container);
 
     this.#appendToBootstrapMsg(`${prefix}\n`);
@@ -88,6 +88,12 @@ ______           _         _
         async (context: RouterContext): Promise<void> => {
           // on execution, tell the container what route to execute,
           // and provide it the currently given context.
+
+          // TODO redundant infomation here. The route definition should actually
+          // be in the context. The execution container should maybe only take
+          // the context, and use the rest to execute. Maybe store the controllers
+          // in DI by the PREFIX, not the name. That way, they can be resolved
+          // using the context. This is actually smaht. Do this instead.
           const result: ExecutionResult = await container.execute(route, context);
 
           context.response.body = result.body;
