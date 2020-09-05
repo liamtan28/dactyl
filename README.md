@@ -1,7 +1,7 @@
 <img src="./media/fulllogo.jpg?raw=true" alt="dactyl" width="243" height="161"/>
 
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/dactyl/mod.ts) ![LatestRelease](https://img.shields.io/github/v/tag/liamtan28/dactyl)
-<!--![RunUnitTests](https://github.com/liamtan28/dactyl/workflows/RunUnitTests/badge.svg?branch=master)-->
+![build](https://github.com/liamtan28/dactyl/workflows/build/badge.svg)
 ### Web framework for Deno, built on top of Oak
 
 ## Currently in the works
