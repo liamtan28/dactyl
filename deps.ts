@@ -14,6 +14,7 @@ export {
   assertThrows,
   assertStrictEquals,
 } from "https://deno.land/std@0.62.0/testing/asserts.ts";
+export { spy, Spy } from "https://deno.land/x/mock@v0.5.1/spy.ts";
 export {
   green,
   red,
