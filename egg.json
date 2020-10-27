@@ -1,0 +1,10 @@
+{
+                                "name": "dactyl",
+                                "description": "Web framework for Deno, built on top of Oak 🦇",
+                                "homepage": "https://github.com/liamtan28/dactyl",
+                                "files": [
+                                  "./**/*.ts",
+                                  "README.md"
+                                ],
+                                "entry": "./mod.ts"
+                              }
