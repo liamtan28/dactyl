@@ -16,7 +16,8 @@ export {
   assertThrows,
   assertStrictEquals,
 } from "https://deno.land/std@0.62.0/testing/asserts.ts";
-export { spy, Spy } from "https://deno.land/x/mock@v0.5.1/spy.ts";
+export { spy } from "https://deno.land/x/mock@v0.5.1/spy.ts";
+export type { Spy } from "https://deno.land/x/mock@v0.5.1/spy.ts";
 export {
   green,
   red,
@@ -26,4 +27,4 @@ export {
   white,
 } from "https://deno.land/std@0.62.0/fmt/colors.ts";
 export { v4 } from "https://deno.land/std@0.62.0/uuid/mod.ts";
-export * as log from "https://deno.land/std@0.62.0/log/mod.ts";
+export * as log from "https://deno.land/std@0.65.0/log/mod.ts";
