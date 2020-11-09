@@ -3,9 +3,11 @@
 export {
   Router,
   Application,
-  RouterContext,
   Context,
   Response,
+} from "https://deno.land/x/oak@v6.0.1/mod.ts";
+export type {
+  RouterContext,
   Middleware,
 } from "https://deno.land/x/oak@v6.0.1/mod.ts";
 export { Status, STATUS_TEXT } from "https://deno.land/std@0.62.0/http/http_status.ts";
